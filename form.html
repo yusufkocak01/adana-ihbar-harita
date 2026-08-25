@@ -334,8 +334,12 @@ document.getElementById('ihbarForm').addEventListener('submit', async function(e
     btn.disabled = true;
     msgBox.classList.add('hidden');
     
+   
     const formData = new FormData(this);
-    const data = Object.fromEntries(formData);
+const data = Object.fromEntries(formData);
+
+// 🔧 DÜZELTME: File objesinin {} olarak gönderilmesini engelle
+delete data.gorsel;
     const fileInput = document.getElementById('gorselInput');
     const files = fileInput.files;
     

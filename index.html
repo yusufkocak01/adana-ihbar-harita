@@ -60,8 +60,9 @@ var categories={
 };
 
 function getEmoji(tur){
-  if(!tur) return '📍';
-  if(tur.indexOf('Yeşil')!==-1 || tur.indexOf('Park')!==-1 || tur.indexOf('Bahçe')!==-1) return '🌳';
+  if(!tur) return String.fromCodePoint(0x1F4CD);
+  // Yeşil alan için özel kontrol
+  if(tur.indexOf('Yeşil')!==-1 || tur.indexOf('Park')!==-1 || tur.indexOf('Bahçe')!==-1) return String.fromCodePoint(0x1F333);
   for(var k in categories){
     if(tur.indexOf(k)!==-1){
       for(var i=0;i<butonlar.length;i++){
@@ -69,13 +70,7 @@ function getEmoji(tur){
       }
     }
   }
-  return '📍';
-}
-function getKey(tur){
-  for(var k in categories){
-    if(tur && tur.indexOf(k)!==-1) return categories[k];
-  }
-  return 'diger';
+  return String.fromCodePoint(0x1F4CD);
 }
 
 function butonlariOlustur(){

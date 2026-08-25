@@ -1,281 +1,348 @@
-  
-
-
-
- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>İhbar ve Talep Formu - Taşköprü Gazetesi</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .brand-red { color: #e31e24; }
-        .bg-brand-red { background-color: #e31e24; }
-        .bg-brand-red:hover { background-color: #c4181d; }
-        .border-brand-red { border-color: #e31e24; }
-        .focus-ring:focus { ring: 2px; ring-color: #e31e24; border-color: #e31e24; outline: none; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>İhbar ve Talep Formu - Taşköprü Gazetesi</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+.brand-red { color: #e31e24; }
+.bg-brand-red { background-color: #e31e24; }
+.bg-brand-red:hover { background-color: #c4181d; }
+.border-brand-red { border-color: #e31e24; }
+.focus-ring:focus { ring: 2px; ring-color: #e31e24; border-color: #e31e24; outline: none; }
+</style>
 </head>
 <body class="bg-gray-50 min-h-screen py-8 px-4">
 
-    <div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
-        <!-- ÜST BAŞLIK VE LOGO -->
-        <div class="bg-brand-red p-6 text-center text-white">
-            <img src="https://www.taskoprugazetesi.com/images/generals/logo.png?v=2119" alt="Taşköprü Gazetesi" class="h-16 mx-auto mb-3 bg-white rounded-lg p-1">
-            <h1 class="text-2xl font-bold tracking-wide">TAŞKÖPRÜ GAZETESİ</h1>
-            <p class="text-sm opacity-90 mt-1">Vatandaş İhbar ve Talep Formu</p>
-        </div>
-
-        <!-- FORM ALANI -->
-        <div class="p-6 md:p-8">
-            <form id="ihbarForm" class="space-y-6">
-                
-                <!-- İletişim Bilgileri -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Ad Soyad <span class="text-gray-400 font-normal">(İsteğe Bağlı)</span></label>
-                        <input type="text" name="adSoyad" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Adınız Soyadınız">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 mb-1">Telefon <span class="text-gray-400 font-normal">(İsteğe Bağlı)</span></label>
-                        <input type="tel" name="telefon" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="05XX XXX XX XX">
-                    </div>
-                </div>
-
-                <!-- İhbar Türü -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">İhbar Türü <span class="text-red-500">*</span></label>
-                    <select name="ihbarTuru" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition bg-white">
-                        <option value="">Lütfen Seçiniz...</option>
-                        <option value="Çöp-Moloz-Temizlik">Çöp / Moloz / Temizlik</option>
-                        <option value="Yol ve Kaldırım">Yol ve Kaldırım Sorunu</option>
-                        <option value="Yeşil Alan-Park-Bahçe Problemleri">Yeşil Alan / Park / Bahçe</option>
-                        <option value="Su ve Kanalizasyon">Su ve Kanalizasyon</option>
-                        <option value="Toplu Taşıma">Toplu Taşıma</option>
-                        <option value="Trafik ve Otopark">Trafik ve Otopark</option>
-                        <option value="Yaya Güvenliği">Yaya Güvenliği</option>
-                        <option value="Gürültü ve Görüntü Kirliliği">Gürültü ve Görüntü Kirliliği</option>
-                        <option value="Diğer">Diğer</option.option>
-                    </select>
-                </div>
-
-                <!-- Konum / Adres (GPS Özellikli) -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Konum / Adres <span class="text-red-500">*</span></label>
-                    <button type="button" id="getLocationBtn" onclick="getLocation()" class="mb-2 w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                        📍 Konumumu Otomatik Bul
-                    </button>
-                    <textarea name="adres" id="adresInput" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Konum bulunamazsa lütfen manuel olarak yazınız..."></textarea>
-                    <p id="locationStatus" class="text-sm mt-1 text-gray-500"></p>
-                    <!-- Gizli Koordinat Alanları -->
-                    <input type="hidden" name="latitude" id="latInput">
-                    <input type="hidden" name="longitude" id="lngInput">
-                </div>
-
-                <!-- Açıklama -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Durumu Detaylıca Açıklayınız <span class="text-red-500">*</span></label>
-                    <textarea name="aciklama" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Sorunu, tarihi ve detayları ile açıklayınız..."></textarea>
-                </div>
-
-                <!-- Görsel / Video Yükleme -->
-                <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-1">Görsel veya Video Ekleyin <span class="text-gray-400 font-normal">(İsteğe Bağlı, Max 5MB)</span></label>
-                    <input type="file" name="gorsel" id="gorselInput" accept="image/*,video/*" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-brand-red hover:file:bg-red-100">
-                    <p id="fileStatus" class="text-sm mt-1 text-gray-500"></p>
-                </div>
-
-                <!-- Özel Sorular -->
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
-                    <div>
-                        <p class="text-sm font-semibold text-gray-800 mb-2">Kişisel bilgileriniz haberde yer alsın mı? <span class="text-red-500">*</span></p>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="haberdeYeral" value="Evet" class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                <span class="text-sm text-gray-700">Evet</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="haberdeYeral" value="Hayır" checked class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                <span class="text-sm text-gray-700">Hayır (Anonim Kal)</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div class="border-t border-gray-200 pt-4">
-                        <p class="text-sm font-semibold text-gray-800 mb-2">Belediye yetkilileri bu ihbarı görsün mü? <span class="text-red-500">*</span></p>
-                        <div class="flex gap-4">
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="belediyeGorsun" value="Evet" checked class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                <span class="text-sm text-gray-700">Evet</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="belediyeGorsun" value="Hayır" class="w-4 h-4 text-red-600 focus:ring-red-500">
-                                <span class="text-sm text-gray-700">Hayır</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Gönder Butonu -->
-                <button type="submit" id="submitBtn" class="w-full bg-brand-red text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center gap-2">
-                    <span>İHBARI GÖNDER</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                </button>
-            </form>
-
-            <!-- Başarı / Hata Mesajı -->
-            <div id="messageBox" class="hidden mt-6 p-4 rounded-lg text-center"></div>
-        </div>
-        
-        <div class="bg-gray-100 p-4 text-center text-xs text-gray-500 border-t">
-            © 2026 Taşköprü Gazetesi. Tüm hakları saklıdır.
-        </div.
+<div class="max-w-2xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+    <!-- ÜST BAŞLIK VE LOGO -->
+    <div class="bg-brand-red p-6 text-center text-white">
+        <img src="https://www.taskoprugazetesi.com/images/generals/logo.png?v=2119" alt="Taşköprü Gazetesi" class="h-16 mx-auto mb-3 bg-white rounded-lg p-1">
+        <h1 class="text-2xl font-bold tracking-wide">TAŞKÖPRÜ GAZETESİ</h1>
+        <p class="text-sm opacity-90 mt-1">Vatandaş İhbar ve Talep Formu</p>
     </div>
 
-    <script>
-        // ⚠️ BURAYA KENDİ APPS SCRIPT WEB APP URL'NİZİ YAZIN
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAhQ5yRel0LcbPIY7d-3JwieeoZBgZ3g6f1MjQXWQ74MQHnyPzqj0tx9woZCUFhwJp/exec";
-
-        // 1. GPS KONUM ALMA FONKSİYONU
-        function getLocation() {
-            const status = document.getElementById('locationStatus');
-            const btn = document.getElementById('getLocationBtn');
+    <!-- FORM ALANI -->
+    <div class="p-6 md:p-8">
+        <form id="ihbarForm" class="space-y-6">
             
-            if (!navigator.geolocation) {
-                status.textContent = "❌ Tarayıcınız konum özelliğini desteklemiyor.";
-                status.className = "text-sm mt-1 text-red-600";
-                return;
+            <!-- İletişim Bilgileri (ZORUNLU) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Ad Soyad <span class="text-red-500">*</span></label>
+                    <input type="text" name="adSoyad" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Adınız Soyadınız">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 mb-1">Telefon <span class="text-red-500">*</span></label>
+                    <input type="tel" name="telefon" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="05XX XXX XX XX">
+                </div>
+            </div>
+
+            <!-- İhbar Türü -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">İhbar Türü <span class="text-red-500">*</span></label>
+                <select name="ihbarTuru" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition bg-white">
+                    <option value="">Lütfen Seçiniz...</option>
+                    <option value="Çöp-Moloz-Temizlik">Çöp / Moloz / Temizlik</option>
+                    <option value="Yol ve Kaldırım">Yol ve Kaldırım Sorunu</option>
+                    <option value="Yeşil Alan-Park-Bahçe Problemleri">Yeşil Alan / Park / Bahçe</option>
+                    <option value="Su ve Kanalizasyon">Su ve Kanalizasyon</option>
+                    <option value="Toplu Taşıma">Toplu Taşıma</option>
+                    <option value="Trafik ve Otopark">Trafik ve Otopark</option>
+                    <option value="Yaya Güvenliği">Yaya Güvenliği</option>
+                    <option value="Gürültü ve Görüntü Kirliliği">Gürültü ve Görüntü Kirliliği</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+            </div>
+
+            <!-- Konum / Adres (GPS Özellikli) -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Konum / Adres <span class="text-red-500">*</span></label>
+                <button type="button" id="getLocationBtn" onclick="getLocation()" class="mb-2 w-full md:w-auto flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                    📍 Konumumu Otomatik Bul
+                </button>
+                <textarea name="adres" id="adresInput" rows="3" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Konum bulunamazsa lütfen manuel olarak yazınız..."></textarea>
+                <p id="locationStatus" class="text-sm mt-1 text-gray-500"></p>
+                <!-- Gizli Koordinat Alanları -->
+                <input type="hidden" name="latitude" id="latInput">
+                <input type="hidden" name="longitude" id="lngInput">
+            </div>
+
+            <!-- Açıklama -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Durumu Detaylıca Açıklayınız <span class="text-red-500">*</span></label>
+                <textarea name="aciklama" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Sorunu, tarihi ve detayları ile açıklayınız..."></textarea>
+            </div>
+
+            <!-- Görsel / Video Yükleme (YENİ LİMİTLER) -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Görsel veya Video Ekleyin <span class="text-gray-400 font-normal">(İsteğe Bağlı)</span></label>
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+                    <p class="text-sm text-blue-800 font-medium">📁 Yükleme Limitleri:</p>
+                    <ul class="text-xs text-blue-700 mt-1 space-y-1">
+                        <li>• Video: Maksimum 15 MB</li>
+                        <li>• Görsel: Her biri maksimum 15 MB (en fazla 8 adet)</li>
+                        <li>• Toplam: Maksimum 200 MB</li>
+                    </ul>
+                </div>
+                <input type="file" name="gorsel" id="gorselInput" accept="image/*,video/*" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-brand-red hover:file:bg-red-100">
+                <p id="fileStatus" class="text-sm mt-1 text-gray-500"></p>
+            </div>
+
+            <!-- Özel Sorular -->
+            <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 space-y-4">
+                <div>
+                    <p class="text-sm font-semibold text-gray-800 mb-2">Adınız haberde yer alsın mı? <span class="text-red-500">*</span><br><span class="text-xs text-gray-500 font-normal">(Telefon numaranız yayınlanmaz)</span></p>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="haberdeYeral" value="Evet" required class="w-4 h-4 text-red-600 focus:ring-red-500">
+                            <span class="text-sm text-gray-700">Evet</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="haberdeYeral" value="Hayır" required class="w-4 h-4 text-red-600 focus:ring-red-500">
+                            <span class="text-sm text-gray-700">Hayır (Anonim Kal)</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="border-t border-gray-200 pt-4">
+                    <p class="text-sm font-semibold text-gray-800 mb-2">Belediye yetkilileri bu ihbarı görsün mü? <span class="text-red-500">*</span></p>
+                    <div class="flex gap-4">
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="belediyeGorsun" value="Evet" required class="w-4 h-4 text-red-600 focus:ring-red-500">
+                            <span class="text-sm text-gray-700">Evet</span>
+                        </label>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="radio" name="belediyeGorsun" value="Hayır" required class="w-4 h-4 text-red-600 focus:ring-red-500">
+                            <span class="text-sm text-gray-700">Hayır</span>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gönder Butonu -->
+            <button type="submit" id="submitBtn" class="w-full bg-brand-red text-white font-bold py-3 px-6 rounded-lg shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition duration-200 flex items-center justify-center gap-2">
+                <span>İHBARI GÖNDER</span>
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+            </button>
+        </form>
+
+        <!-- Başarı / Hata Mesajı -->
+        <div id="messageBox" class="hidden mt-6 p-4 rounded-lg text-center"></div>
+    </div>
+    
+    <div class="bg-gray-100 p-4 text-center text-xs text-gray-500 border-t">
+        © 2026 Taşköprü Gazetesi. Tüm hakları saklıdır.
+    </div>
+</div>
+
+<script>
+// ⚠️ BURAYA KENDİ APPS SCRIPT WEB APP URL'NİZİ YAZIN
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAhQ5yRel0LcbPIY7d-3JwieeoZBgZ3g6f1MjQXWQ74MQHnyPzqj0tx9woZCUFhwJp/exec
+";
+
+// Google Drive Folder ID
+const DRIVE_FOLDER_ID = "1W5ShUkqsTrAwLvdfcEDWI2zyw2-WkDpXsfxMKykp0dfiJFTbxCY9Nk6SzhOou6uXYwPvnCAy";
+
+// Dosya limitleri
+const MAX_VIDEO_SIZE = 15 * 1024 * 1024; // 15 MB
+const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15 MB
+const MAX_TOTAL_SIZE = 200 * 1024 * 1024; // 200 MB
+const MAX_IMAGE_COUNT = 8;
+
+// 1. GPS KONUM ALMA FONKSİYONU
+function getLocation() {
+    const status = document.getElementById('locationStatus');
+    const btn = document.getElementById('getLocationBtn');
+    
+    if (!navigator.geolocation) {
+        status.textContent = "❌ Tarayıcınız konum özelliğini desteklemiyor.";
+        status.className = "text-sm mt-1 text-red-600";
+        return;
+    }
+
+    status.textContent = "⏳ Konum alınıyor, lütfen izin verin...";
+    status.className = "text-sm mt-1 text-blue-600";
+    btn.disabled = true;
+
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            document.getElementById('latInput').value = lat;
+            document.getElementById('lngInput').value = lng;
+
+            status.textContent = "🔄 Adres bilgisi çözülüyor...";
+            try {
+                // OpenStreetMap Ücretsiz Reverse Geocoding API
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=tr`);
+                const data = await response.json();
+                const adres = data.display_name || `${lat}, ${lng}`;
+                document.getElementById('adresInput').value = adres;
+                status.textContent = "✅ Konum ve adres başarıyla eklendi!";
+                status.className = "text-sm mt-1 text-green-600 font-semibold";
+            } catch (error) {
+                document.getElementById('adresInput').value = `${lat}, ${lng}`;
+                status.textContent = "⚠️ Adres çözülemedi, sadece koordinatlar eklendi.";
+                status.className = "text-sm mt-1 text-yellow-600";
             }
+            btn.disabled = false;
+        },
+        (error) => {
+            btn.disabled = false;
+            status.className = "text-sm mt-1 text-red-600";
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    status.textContent = " Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya manuel yazın.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    status.textContent = "❌ Konum bilgisi alınamıyor.";
+                    break;
+                case error.TIMEOUT:
+                    status.textContent = "❌ Konum alma işlemi zaman aşımına uğradı.";
+                    break;
+                default:
+                    status.textContent = "❌ Bilinmeyen bir hata oluştu.";
+            }
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+    );
+}
 
-            status.textContent = "⏳ Konum alınıyor, lütfen izin verin...";
-            status.className = "text-sm mt-1 text-blue-600";
-            btn.disabled = true;
-
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    document.getElementById('latInput').value = lat;
-                    document.getElementById('lngInput').value = lng;
-
-                    status.textContent = "🔄 Adres bilgisi çözülüyor...";
-                    try {
-                        // OpenStreetMap Ücretsiz Reverse Geocoding API
-                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=tr`);
-                        const data = await response.json();
-                        const adres = data.display_name || `${lat}, ${lng}`;
-                        document.getElementById('adresInput').value = adres;
-                        status.textContent = "✅ Konum ve adres başarıyla eklendi!";
-                        status.className = "text-sm mt-1 text-green-600 font-semibold";
-                    } catch (error) {
-                        document.getElementById('adresInput').value = `${lat}, ${lng}`;
-                        status.textContent = "⚠️ Adres çözülemedi, sadece koordinatlar eklendi.";
-                        status.className = "text-sm mt-1 text-yellow-600";
-                    }
-                    btn.disabled = false;
-                },
-                (error) => {
-                    btn.disabled = false;
-                    status.className = "text-sm mt-1 text-red-600";
-                    switch(error.code) {
-                        case error.PERMISSION_DENIED:
-                            status.textContent = "❌ Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya manuel yazın.";
-                            break;
-                        case error.POSITION_UNAVAILABLE:
-                            status.textContent = "❌ Konum bilgisi alınamıyor.";
-                            break;
-                        case error.TIMEOUT:
-                            status.textContent = "❌ Konum alma işlemi zaman aşımına uğradı.";
-                            break;
-                        default:
-                            status.textContent = "❌ Bilinmeyen bir hata oluştu.";
-                    }
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+// 2. DOSYA BOYUTU VE ADET KONTROLÜ
+document.getElementById('gorselInput').addEventListener('change', function(e) {
+    const files = e.target.files;
+    const status = document.getElementById('fileStatus');
+    
+    if (files.length === 0) {
+        status.textContent = "";
+        return;
+    }
+    
+    let totalSize = 0;
+    let imageCount = 0;
+    let hasError = false;
+    let errorMsg = [];
+    
+    for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        totalSize += file.size;
+        
+        if (file.type.startsWith('image/')) {
+            imageCount++;
+            if (file.size > MAX_IMAGE_SIZE) {
+                errorMsg.push(`❌ "${file.name}" çok büyük (Maksimum 15 MB)`);
+                hasError = true;
+            }
+        } else if (file.type.startsWith('video/')) {
+            if (file.size > MAX_VIDEO_SIZE) {
+                errorMsg.push(`❌ "${file.name}" çok büyük (Maksimum 15 MB)`);
+                hasError = true;
+            }
         }
+    }
+    
+    if (imageCount > MAX_IMAGE_COUNT) {
+        errorMsg.push(`❌ En fazla ${MAX_IMAGE_COUNT} görsel yükleyebilirsiniz (Şu an: ${imageCount})`);
+        hasError = true;
+    }
+    
+    if (totalSize > MAX_TOTAL_SIZE) {
+        errorMsg.push(`❌ Toplam boyut çok büyük (Maksimum 200 MB, Siz: ${(totalSize / (1024*1024)).toFixed(1)} MB)`);
+        hasError = true;
+    }
+    
+    if (hasError) {
+        status.textContent = errorMsg.join('\n');
+        status.className = "text-sm mt-1 text-red-600 whitespace-pre-line";
+        e.target.value = ""; // Dosyaları temizle
+    } else {
+        const sizeMB = (totalSize / (1024*1024)).toFixed(1);
+        status.textContent = `✅ ${files.length} dosya seçildi. Toplam: ${sizeMB} MB`;
+        status.className = "text-sm mt-1 text-green-600";
+    }
+});
 
-        // 2. DOSYA BOYUTU KONTROLÜ
-        document.getElementById('gorselInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            const status = document.getElementById('fileStatus');
-            if (file) {
-                if (file.size > 5 * 1024 * 1024) { // 5 MB Limiti
-                    status.textContent = "❌ Dosya boyutu 5MB'dan küçük olmalıdır.";
-                    status.className = "text-sm mt-1 text-red-600";
-                    e.target.value = ""; // Dosyayı temizle
-                } else {
-                    status.textContent = "✅ " + file.name + " seçildi.";
-                    status.className = "text-sm mt-1 text-green-600";
-                }
-            }
-        });
+// 3. FORM GÖNDERME İŞLEMİ
+document.getElementById('ihbarForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const btn = document.getElementById('submitBtn');
+    const originalBtnText = btn.innerHTML;
+    btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Gönderiliyor...`;
+    btn.disabled = true;
 
-        // 3. FORM GÖNDERME İŞLEMİ
-        document.getElementById('ihbarForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const btn = document.getElementById('submitBtn');
-            const originalBtnText = btn.innerHTML;
-            btn.innerHTML = `<svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Gönderiliyor...`;
-            btn.disabled = true;
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData);
 
-            const formData = new FormData(this);
-            const data = Object.fromEntries(formData);
-
-            // Görsel varsa Base64'e çevir (Apps Script için)
-            const fileInput = document.getElementById('gorselInput');
-            if (fileInput.files[0]) {
-                const reader = new FileReader();
+    // Dosyaları Base64'e çevir
+    const fileInput = document.getElementById('gorselInput');
+    if (fileInput.files.length > 0) {
+        const filePromises = [];
+        for (let i = 0; i < fileInput.files.length; i++) {
+            const file = fileInput.files[i];
+            const reader = new FileReader();
+            const promise = new Promise((resolve) => {
                 reader.onload = function(event) {
-                    data.gorsel = event.target.result; // Base64 string
-                    sendData(data, btn, originalBtnText);
+                    resolve({
+                        name: file.name,
+                        type: file.type,
+                        data: event.target.result
+                    });
                 };
-                reader.readAsDataURL(fileInput.files[0]);
-            } else {
-                data.gorsel = "";
-                sendData(data, btn, originalBtnText);
-            }
-        });
-
-        function sendData(data, btn, originalBtnText) {
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Google Apps Script CORS kısıtlaması için
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(data)
-            })
-            .then(() => {
-                const msgBox = document.getElementById('messageBox');
-                msgBox.className = "mt-6 p-4 rounded-lg text-center bg-green-100 text-green-800 border border-green-200";
-                msgBox.innerHTML = `<strong>✅ İhbarınız Başarıyla Alındı!</strong><br><span class="text-sm">Taşköprü Gazetesi olarak inceleyip gerekli mercilere ileteceğiz. Teşekkür ederiz.</span>`;
-                msgBox.classList.remove('hidden');
-                
-                document.getElementById('ihbarForm').reset();
-                document.getElementById('locationStatus').textContent = "";
-                document.getElementById('fileStatus').textContent = "";
-                
-                btn.innerHTML = originalBtnText;
-                btn.disabled = false;
-                
-                // Sayfayı mesaj kutusuna kaydır
-                msgBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            })
-            .catch(error => {
-                console.error('Hata:', error);
-                const msgBox = document.getElementById('messageBox');
-                msgBox.className = "mt-6 p-4 rounded-lg text-center bg-red-100 text-red-800 border border-red-200";
-                msgBox.innerHTML = `<strong>❌ Bir Hata Oluştu!</strong><br><span class="text-sm">Lütfen internet bağlantınızı kontrol edip tekrar deneyin.</span>`;
-                msgBox.classList.remove('hidden');
-                
-                btn.innerHTML = originalBtnText;
-                btn.disabled = false;
+                reader.readAsDataURL(file);
             });
+            filePromises.push(promise);
         }
-    </script>
+        
+        Promise.all(filePromises).then(filesData => {
+            data.gorseller = filesData;
+            sendData(data, btn, originalBtnText);
+        });
+    } else {
+        data.gorseller = [];
+        sendData(data, btn, originalBtnText);
+    }
+});
+
+function sendData(data, btn, originalBtnText) {
+    fetch(SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(() => {
+        const msgBox = document.getElementById('messageBox');
+        msgBox.className = "mt-6 p-4 rounded-lg text-center bg-green-100 text-green-800 border border-green-200";
+        msgBox.innerHTML = `<strong>✅ İhbarınız Başarıyla Alındı!</strong><br><span class="text-sm">Taşköprü Gazetesi olarak inceleyip gerekli mercilere ileteceğiz. Teşekkür ederiz.</span>`;
+        msgBox.classList.remove('hidden');
+        
+        document.getElementById('ihbarForm').reset();
+        document.getElementById('locationStatus').textContent = "";
+        document.getElementById('fileStatus').textContent = "";
+        
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+        
+        // Sayfayı mesaj kutusuna kaydır
+        msgBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    })
+    .catch(error => {
+        console.error('Hata:', error);
+        const msgBox = document.getElementById('messageBox');
+        msgBox.className = "mt-6 p-4 rounded-lg text-center bg-red-100 text-red-800 border border-red-200";
+        msgBox.innerHTML = `<strong>❌ Bir Hata Oluştu!</strong><br><span class="text-sm">Lütfen internet bağlantınızı kontrol edip tekrar deneyin.</span>`;
+        msgBox.classList.remove('hidden');
+        
+        btn.innerHTML = originalBtnText;
+        btn.disabled = false;
+    });
+}
+</script>
 </body>
 </html>

@@ -7,7 +7,16 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-body { background: #f4f6f9; }
+
+/* İFRAME İÇİN KRİTİK AYAR: Dışarıdan taşmayı ve iç scroll'u engeller */
+html, body { 
+  height: 100%; 
+  margin: 0; 
+  padding: 0; 
+  overflow: hidden; /* İç kaydırmayı tamamen kapatır */
+  background: #f4f6f9; 
+}
+
 .ihbar-header { background: #e31e24; color: #fff; padding: 15px; text-align: center; }
 .ihbar-header h3 { margin: 0; font-size: 1.3rem; }
 .ihbar-stats { display: flex; justify-content: center; gap: 15px; padding: 8px; background: #fff; border-bottom: 1px solid #ddd; }
@@ -16,7 +25,13 @@ body { background: #f4f6f9; }
 .ihbar-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; background: #fff; border-bottom: 1px solid #ddd; }
 .ihbar-btn { padding: 5px 10px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 15px; cursor: pointer; font-weight: 600; font-size: .8rem; }
 .ihbar-btn.active { background: #e31e24; color: #fff; }
-#map { height: 100vh; width: 100%; }
+
+/* Haritanın kalan tüm alanı doldurmasını sağlar */
+#map { 
+  height: calc(100% - 140px); /* Header, stats ve filters yüksekliği kadar pay bırakır */
+  width: 100%; 
+}
+
 .ihbar-load { text-align: center; padding: 30px; color: #666; }
 </style>
 </head>

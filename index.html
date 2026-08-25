@@ -1,104 +1,114 @@
-<!DOCTYPE html>
+
+  <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Adana İhbar Haritası</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
-
-/* İFRAME İÇİN KRİTİK AYAR: Dışarıdan taşmayı ve iç scroll'u engeller */
+/* KRİTİK: Sayfa yapısını esnek (flex) hale getiriyoruz, donmayı önler */
 html, body { 
   height: 100%; 
   margin: 0; 
   padding: 0; 
-  overflow: hidden; /* İç kaydırmayı tamamen kapatır */
+  overflow: hidden; 
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
   background: #f4f6f9; 
 }
 
-.ihbar-header { background: #e31e24; color: #fff; padding: 15px; text-align: center; }
-.ihbar-header h3 { margin: 0; font-size: 1.3rem; }
+.ihbar-header, .ihbar-stats, .ihbar-filters { flex-shrink: 0; }
+.ihbar-header { background: #e31e24; color: #fff; padding: 12px; text-align: center; }
+.ihbar-header h3 { margin: 0; font-size: 1.2rem; }
+
 .ihbar-stats { display: flex; justify-content: center; gap: 15px; padding: 8px; background: #fff; border-bottom: 1px solid #ddd; }
 .ihbar-stat { text-align: center; }
-.ihbar-stat-num { font-size: 1.3rem; font-weight: bold; color: #e31e24; }
-.ihbar-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; background: #fff; border-bottom: 1px solid #ddd; }
-.ihbar-btn { padding: 5px 10px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 15px; cursor: pointer; font-weight: 600; font-size: .8rem; }
+.ihbar-stat-num { font-size: 1.2rem; font-weight: bold; color: #e31e24; }
+.ihbar-stat-label { font-size: 0.7rem; color: #666; }
+
+.ihbar-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 8px; background: #fff; border-bottom: 1px solid #ddd; }
+.ihbar-btn { padding: 4px 8px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 15px; cursor: pointer; font-weight: 600; font-size: 0.7rem; white-space: nowrap; }
 .ihbar-btn.active { background: #e31e24; color: #fff; }
 
-/* Haritanın kalan tüm alanı doldurmasını sağlar */
+/* HARİTA: Kalan TÜM boşluğu otomatik doldurur (Donma çözümü) */
 #map { 
-  height: calc(100% - 140px); /* Header, stats ve filters yüksekliği kadar pay bırakır */
+  flex-grow: 1; 
   width: 100%; 
+  min-height: 300px; 
+  z-index: 1;
 }
 
-.ihbar-load { text-align: center; padding: 30px; color: #666; }
+.ihbar-load { text-align: center; padding: 30px; color: #666; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
 </style>
 </head>
 <body>
+
 <div class="ihbar-header"><h3>📍 Adana İhbar Haritası</h3></div>
+
 <div class="ihbar-stats">
-<div class="ihbar-stat"><div class="ihbar-stat-num" id="totalC">0</div><div>Toplam</div></div>
-<div class="ihbar-stat"><div class="ihbar-stat-num" id="visC">0</div><div>Gösterilen</div></div>
+  <div class="ihbar-stat"><div class="ihbar-stat-num" id="totalC">0</div><div class="ihbar-stat-label">Toplam</div></div>
+  <div class="ihbar-stat"><div class="ihbar-stat-num" id="visC">0</div><div class="ihbar-stat-label">Gösterilen</div></div>
 </div>
+
 <div class="ihbar-filters" id="filterBox"></div>
-<div id="ihbar-load" class="ihbar-load">Yükleniyor...</div>
-<div id="map"></div>
+
+<div id="ihbar-load" class="ihbar-load">⏳ Harita yükleniyor...</div>
+<div id="map" style="display: none;"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-var api="https://script.google.com/macros/s/AKfycbxqgNmsEqgpgFb8vXM_2AjEez90J401544k1uv9rODoWhmO-vIPFQEXkjSz-aAwnB9w/exec";
-var map,markers=[],data=[];
+var api = "https://script.google.com/macros/s/AKfycbxqgNmsEqgpgFb8vXM_2AjEez90J401544k1uv9rODoWhmO-vIPFQEXkjSz-aAwnB9w/exec";
+var map, markers = [], data = [];
 
-var butonlar=[
-  {id:'all', metin:'Tümü', emoji: String.fromCodePoint(0x1F4CD)},
-  {id:'cop', metin:'Çöp-Moloz-Temizlik', emoji: String.fromCodePoint(0x1F5D1)},
-  {id:'yol', metin:'Yol ve Kaldırım', emoji: String.fromCodePoint(0x1F573)},
-  {id:'yesil', metin:'Yeşil Alan-Park-Bahçe', emoji: String.fromCodePoint(0x1F333)},
-  {id:'su', metin:'Su ve Kanalizasyon', emoji: String.fromCodePoint(0x1F4A7)},
-  {id:'toplu', metin:'Toplu Taşıma', emoji: String.fromCodePoint(0x1F68C)},
-  {id:'trafik', metin:'Trafik ve Otopark', emoji: String.fromCodePoint(0x1F697)},
-  {id:'yaya', metin:'Yaya Güvenliği', emoji: String.fromCodePoint(0x1F6B8)},
-  {id:'gurultu', metin:'Gürültü ve Görüntü', emoji: String.fromCodePoint(0x1F50A)},
-  {id:'diger', metin:'Diğer', emoji: String.fromCodePoint(0x1F4CD)}
+var butonlar = [
+  {id: 'all', metin: 'Tümü', emoji: String.fromCodePoint(0x1F4CD)},
+  {id: 'cop', metin: 'Çöp-Moloz', emoji: String.fromCodePoint(0x1F5D1)},
+  {id: 'yol', metin: 'Yol-Kaldırım', emoji: String.fromCodePoint(0x1F573)},
+  {id: 'yesil', metin: 'Yeşil-Park', emoji: String.fromCodePoint(0x1F333)},
+  {id: 'su', metin: 'Su-Kanal', emoji: String.fromCodePoint(0x1F4A7)},
+  {id: 'toplu', metin: 'Toplu Taşıma', emoji: String.fromCodePoint(0x1F68C)},
+  {id: 'trafik', metin: 'Trafik', emoji: String.fromCodePoint(0x1F697)},
+  {id: 'yaya', metin: 'Yaya', emoji: String.fromCodePoint(0x1F6B8)},
+  {id: 'gurultu', metin: 'Gürültü', emoji: String.fromCodePoint(0x1F50A)},
+  {id: 'diger', metin: 'Diğer', emoji: String.fromCodePoint(0x1F4CD)}
 ];
 
-var categories={
-  'Çöp-Moloz-Temizlik':'cop',
-  'Yol ve Kaldırım':'yol',
-  'Yeşil Alan-Park-Bahçe Problemleri':'yesil',
-  'Su ve Kanalizasyon':'su',
-  'Toplu Taşıma':'toplu',
-  'Trafik ve Otopark':'trafik',
-  'Yaya Güvenliği':'yaya',
-  'Gürültü ve Görüntü Kirliliği':'gurultu'
+var categories = {
+  'Çöp-Moloz-Temizlik': 'cop', 'Yol ve Kaldırım': 'yol', 'Yeşil Alan-Park-Bahçe Problemleri': 'yesil',
+  'Yeşil Alan': 'yesil', 'Park': 'yesil', 'Su ve Kanalizasyon': 'su', 'Toplu Taşıma': 'toplu',
+  'Trafik ve Otopark': 'trafik', 'Yaya Güvenliği': 'yaya', 'Gürültü ve Görüntü Kirliliği': 'gurultu', 'Gürültü': 'gurultu'
 };
 
-function getEmoji(tur){
-  if(!tur) return String.fromCodePoint(0x1F4CD);
-  // Yeşil alan için özel kontrol
-  if(tur.indexOf('Yeşil')!==-1 || tur.indexOf('Park')!==-1 || tur.indexOf('Bahçe')!==-1) return String.fromCodePoint(0x1F333);
-  for(var k in categories){
-    if(tur.indexOf(k)!==-1){
-      for(var i=0;i<butonlar.length;i++){
-        if(butonlar[i].id===categories[k]) return butonlar[i].emoji;
+function getEmoji(tur) {
+  if (!tur) return String.fromCodePoint(0x1F4CD);
+  for (var k in categories) {
+    if (tur.indexOf(k) !== -1) {
+      for (var i = 0; i < butonlar.length; i++) {
+        if (butonlar[i].id === categories[k]) return butonlar[i].emoji;
       }
     }
   }
   return String.fromCodePoint(0x1F4CD);
 }
 
-function butonlariOlustur(){
-  var box=document.getElementById('filterBox');
-  box.innerHTML='';
-  for(var i=0;i<butonlar.length;i++){
-    var b=butonlar[i];
-    var btn=document.createElement('button');
-    btn.className='ihbar-btn'+(i===0?' active':'');
-    btn.setAttribute('data-id',b.id);
-    btn.innerHTML=b.emoji+' '+b.metin;
-    btn.onclick=function(){
-      document.querySelectorAll('.ihbar-btn').forEach(function(x){x.classList.remove('active');});
+function getKey(tur) {
+  for (var k in categories) { if (tur && tur.indexOf(k) !== -1) return categories[k]; }
+  return 'diger';
+}
+
+function butonlariOlustur() {
+  var box = document.getElementById('filterBox');
+  box.innerHTML = '';
+  for (var i = 0; i < butonlar.length; i++) {
+    var b = butonlar[i];
+    var btn = document.createElement('button');
+    btn.className = 'ihbar-btn' + (i === 0 ? ' active' : '');
+    btn.setAttribute('data-id', b.id);
+    btn.innerHTML = b.emoji + ' ' + b.metin;
+    btn.onclick = function() {
+      document.querySelectorAll('.ihbar-btn').forEach(function(x) { x.classList.remove('active'); });
       this.classList.add('active');
       filtre(this.getAttribute('data-id'));
     };
@@ -106,61 +116,58 @@ function butonlariOlustur(){
   }
 }
 
-function initMap(){
+function initMap() {
   butonlariOlustur();
-  map=L.map('map',{center:[37.0000,35.3213],zoom:12});
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap | Taşköprü Gazetesi'}).addTo(map);
-  
-  fetch(api).then(function(r){return r.json();}).then(function(d){
-    data=d;
-    document.getElementById('totalC').textContent=d.length;
+  document.getElementById('ihbar-load').style.display = 'none';
+  document.getElementById('map').style.display = 'block';
+
+  map = L.map('map', { center: [37.0000, 35.3213], zoom: 12, zoomControl: true });
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+
+  setTimeout(function() { map.invalidateSize(true); }, 300);
+
+  fetch(api).then(function(r) { return r.json(); }).then(function(d) {
+    data = d;
+    document.getElementById('totalC').textContent = d.length;
     render(data);
-  }).catch(function(e){
-    document.getElementById('ihbar-load').innerHTML='Harita verileri yüklenemedi';
+    setTimeout(function() { map.invalidateSize(true); }, 500);
+  }).catch(function(e) {
+    document.getElementById('ihbar-load').innerHTML = '❌ Veri yüklenemedi.';
   });
 }
 
-function render(items){
-  markers.forEach(function(m){map.removeLayer(m);});
-  markers=[];
-  items.forEach(function(item){
-    if(item.koordinat && item.koordinat.lat){
-      var icon=L.divIcon({
-        className:'custom',
-        html:'<div style="font-size:22px;background:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,0.3);">'+getEmoji(item.tur)+'</div>',
-        iconSize:[36,36],
-        iconAnchor:[18,36]
+function render(items) {
+  markers.forEach(function(m) { map.removeLayer(m); });
+  markers = [];
+  items.forEach(function(item) {
+    if (item.koordinat && item.koordinat.lat) {
+      var icon = L.divIcon({
+        className: 'custom',
+        html: '<div style="font-size:22px;background:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,0.3);">' + getEmoji(item.tur) + '</div>',
+        iconSize: [36, 36], iconAnchor: [18, 36]
       });
       
-      // GÖRSEL LİNKİ GERİ EKLENDİ ✅
       var gorselHtml = '';
       if (item.gorsel) {
         var isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(item.gorsel) || item.gorsel.indexOf('video') !== -1;
-        if (isVideo) {
-          gorselHtml = '<br><a href="'+item.gorsel+'" target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#e31e24;color:#fff;text-decoration:none;border-radius:4px;font-size:0.85rem;">▶️ Videoyu İzle</a>';
-        } else {
-          gorselHtml = '<br><a href="'+item.gorsel+'" target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#28a745;color:#fff;text-decoration:none;border-radius:4px;font-size:0.85rem;">📷 Görseli Görüntüle</a>';
-        }
+        gorselHtml = isVideo 
+          ? '<br><a href="'+item.gorsel+'" target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#e31e24;color:#fff;text-decoration:none;border-radius:4px;font-size:0.8rem;">▶️ Video</a>'
+          : '<br><a href="'+item.gorsel+'" target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#28a745;color:#fff;text-decoration:none;border-radius:4px;font-size:0.8rem;">📷 Görsel</a>';
       }
       
-      var popup='<div style="min-width:220px;"><b style="color:#e31e24;font-size:1.1rem;">'+getEmoji(item.tur)+' '+item.tur+'</b><br><br>👤 <b>İhbarcı:</b> '+(item.adSoyad || 'Anonim')+'<br><br> <b>Adres:</b> '+item.adres+'<br><br>📝 <b>Açıklama:</b> '+item.aciklama+gorselHtml+'</div>';
-      markers.push(L.marker([item.koordinat.lat,item.koordinat.lng],{icon:icon}).bindPopup(popup).addTo(map));
+      var popup = '<div style="min-width:200px;"><b style="color:#e31e24;">' + getEmoji(item.tur) + ' ' + (item.tur || 'İhbar') + '</b><br><br>👤 ' + (item.adSoyad || 'Anonim') + '<br><br>📍 ' + (item.adres || 'Belirtilmemiş') + '<br><br>📝 ' + (item.aciklama || 'Yok') + gorselHtml + '</div>';
+      markers.push(L.marker([item.koordinat.lat, item.koordinat.lng], { icon: icon }).bindPopup(popup).addTo(map));
     }
   });
-  document.getElementById('visC').textContent=markers.length;
+  document.getElementById('visC').textContent = markers.length;
 }
 
-function filtre(cat){
-  if(cat==='all'){
-    render(data);
-  } else {
-    var filtered=data.filter(function(i){return getKey(i.tur)===cat;});
-    render(filtered);
-  }
+function filtre(cat) {
+  render(cat === 'all' ? data : data.filter(function(i) { return getKey(i.tur) === cat; }));
 }
 
-window.addEventListener('load',function(){setTimeout(initMap,100);});
-window.addEventListener('resize',function(){if(map)map.invalidateSize();});
+window.addEventListener('load', function() { setTimeout(initMap, 200); });
+window.addEventListener('resize', function() { if (map) setTimeout(function() { map.invalidateSize(true); }, 200); });
 </script>
 </body>
 </html>

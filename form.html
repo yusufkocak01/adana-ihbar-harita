@@ -10,7 +10,7 @@
 .bg-brand-red { background-color: #e31e24; }
 .bg-brand-red:hover { background-color: #c4181d; }
 .border-brand-red { border-color: #e31e24; }
-.focus-ring:focus { ring: 2px; ring-color: #e31e24; border-color: #e31e24; outline: none; }
+.focus-ring:focus { border-color: #e31e24; outline: none; box-shadow: 0 0 0 3px rgba(227, 30, 36, 0.1); }
 </style>
 </head>
 <body class="bg-gray-50 min-h-screen py-8 px-4">
@@ -76,19 +76,20 @@
                 <textarea name="aciklama" rows="4" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition" placeholder="Sorunu, tarihi ve detayları ile açıklayınız..."></textarea>
             </div>
 
-            <!-- Görsel / Video Yükleme (YENİ LİMİTLER) -->
+            <!-- Görsel / Video Yükleme -->
             <div>
                 <label class="block text-sm font-semibold text-gray-700 mb-1">Görsel veya Video Ekleyin <span class="text-gray-400 font-normal">(İsteğe Bağlı)</span></label>
                 <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
                     <p class="text-sm text-blue-800 font-medium">📁 Yükleme Limitleri:</p>
                     <ul class="text-xs text-blue-700 mt-1 space-y-1">
-                        <li>• Video: Maksimum 15 MB</li>
-                        <li>• Görsel: Her biri maksimum 15 MB (en fazla 8 adet)</li>
-                        <li>• Toplam: Maksimum 200 MB</li>
+                        <li>• 🎥 Video: Maksimum 200 MB (Tek dosya)</li>
+                        <li>• 🖼️ Görsel: Her biri maksimum 15 MB (En fazla 8 adet)</li>
+                        <li>• 💾 Toplam Boyut: Maksimum 320 MB</li>
+                        <li class="text-red-600 font-semibold mt-1">⚠️ Not: 50 MB üzeri videolar için lütfen Google Drive linki kullanınız.</li>
                     </ul>
                 </div>
                 <input type="file" name="gorsel" id="gorselInput" accept="image/*,video/*" multiple class="w-full px-4 py-2 border border-gray-300 rounded-lg focus-ring transition file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-red-50 file:text-brand-red hover:file:bg-red-100">
-                <p id="fileStatus" class="text-sm mt-1 text-gray-500"></p>
+                <p id="fileStatus" class="text-sm mt-1 text-gray-500 whitespace-pre-line"></p>
             </div>
 
             <!-- Özel Sorular -->
@@ -143,14 +144,11 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwAhQ5yRel0LcbPIY7d-3JwieeoZBgZ3g6f1MjQXWQ74MQHnyPzqj0tx9woZCUFhwJp/exec
 ";
 
-// Google Drive Folder ID
-const DRIVE_FOLDER_ID = "1W5ShUkqsTrAwLvdfcEDWI2zyw2-WkDpXsfxMKykp0dfiJFTbxCY9Nk6SzhOou6uXYwPvnCAy";
-
 // Dosya limitleri
-const MAX_VIDEO_SIZE = 15 * 1024 * 1024; // 15 MB
-const MAX_IMAGE_SIZE = 15 * 1024 * 1024; // 15 MB
-const MAX_TOTAL_SIZE = 200 * 1024 * 1024; // 200 MB
-const MAX_IMAGE_COUNT = 8;
+const MAX_VIDEO_SIZE = 200 * 1024 * 1024; // 200 MB
+const MAX_IMAGE_SIZE = 15 * 1024 * 1024;  // 15 MB
+const MAX_TOTAL_SIZE = 320 * 1024 * 1024; // 320 MB
+const MAX_IMAGE_COUNT = 8;                // Maksimum 8 görsel
 
 // 1. GPS KONUM ALMA FONKSİYONU
 function getLocation() {
@@ -195,7 +193,7 @@ function getLocation() {
             status.className = "text-sm mt-1 text-red-600";
             switch(error.code) {
                 case error.PERMISSION_DENIED:
-                    status.textContent = " Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya manuel yazın.";
+                    status.textContent = "❌ Konum izni reddedildi. Lütfen tarayıcı ayarlarından izin verin veya manuel yazın.";
                     break;
                 case error.POSITION_UNAVAILABLE:
                     status.textContent = "❌ Konum bilgisi alınamıyor.";
@@ -223,6 +221,7 @@ document.getElementById('gorselInput').addEventListener('change', function(e) {
     
     let totalSize = 0;
     let imageCount = 0;
+    let videoCount = 0;
     let hasError = false;
     let errorMsg = [];
     
@@ -233,33 +232,43 @@ document.getElementById('gorselInput').addEventListener('change', function(e) {
         if (file.type.startsWith('image/')) {
             imageCount++;
             if (file.size > MAX_IMAGE_SIZE) {
-                errorMsg.push(`❌ "${file.name}" çok büyük (Maksimum 15 MB)`);
+                errorMsg.push(`❌ "${file.name}" çok büyük. Görseller en fazla 15 MB olmalıdır.`);
                 hasError = true;
             }
         } else if (file.type.startsWith('video/')) {
+            videoCount++;
             if (file.size > MAX_VIDEO_SIZE) {
-                errorMsg.push(`❌ "${file.name}" çok büyük (Maksimum 15 MB)`);
+                errorMsg.push(`❌ "${file.name}" çok büyük. Videolar en fazla 200 MB olmalıdır.`);
                 hasError = true;
             }
         }
     }
     
+    // Görsel sayısı kontrolü
     if (imageCount > MAX_IMAGE_COUNT) {
-        errorMsg.push(`❌ En fazla ${MAX_IMAGE_COUNT} görsel yükleyebilirsiniz (Şu an: ${imageCount})`);
+        errorMsg.push(`❌ En fazla ${MAX_IMAGE_COUNT} adet görsel yükleyebilirsiniz. (Seçilen: ${imageCount})`);
+        hasError = true;
+    }
+
+    // Video sayısı kontrolü (Formun şişmemesi için tek video önerilir)
+    if (videoCount > 1) {
+        errorMsg.push(`❌ Aynı anda en fazla 1 video yükleyebilirsiniz.`);
         hasError = true;
     }
     
+    // Toplam boyut kontrolü
     if (totalSize > MAX_TOTAL_SIZE) {
-        errorMsg.push(`❌ Toplam boyut çok büyük (Maksimum 200 MB, Siz: ${(totalSize / (1024*1024)).toFixed(1)} MB)`);
+        const sizeMB = (totalSize / (1024 * 1024)).toFixed(1);
+        errorMsg.push(`❌ Toplam dosya boyutu çok büyük. Maksimum 320 MB izin verilmektedir. (Seçilen: ${sizeMB} MB)`);
         hasError = true;
     }
     
     if (hasError) {
         status.textContent = errorMsg.join('\n');
         status.className = "text-sm mt-1 text-red-600 whitespace-pre-line";
-        e.target.value = ""; // Dosyaları temizle
+        e.target.value = ""; // Hatalıysa dosya seçimini temizle
     } else {
-        const sizeMB = (totalSize / (1024*1024)).toFixed(1);
+        const sizeMB = (totalSize / (1024 * 1024)).toFixed(1);
         status.textContent = `✅ ${files.length} dosya seçildi. Toplam: ${sizeMB} MB`;
         status.className = "text-sm mt-1 text-green-600";
     }

@@ -36,16 +36,16 @@ var api="https://script.google.com/macros/s/AKfycbxqgNmsEqgpgFb8vXM_2AjEez90J401
 var map,markers=[],data=[];
 
 var butonlar=[
-  {id:'all', metin:'Tümü', emoji:'📍'},
-  {id:'cop', metin:'Çöp-Moloz-Temizlik', emoji:'🗑️'},
-  {id:'yol', metin:'Yol ve Kaldırım', emoji:'🕳️'},
-  {id:'yesil', metin:'Yeşil Alan-Park-Bahçe', emoji:'🌳'},
-  {id:'su', metin:'Su ve Kanalizasyon', emoji:''},
-  {id:'toplu', metin:'Toplu Taşıma', emoji:'🚌'},
-  {id:'trafik', metin:'Trafik ve Otopark', emoji:'🚗'},
-  {id:'yaya', metin:'Yaya Güvenliği', emoji:'🚸'},
-  {id:'gurultu', metin:'Gürültü ve Görüntü', emoji:''},
-  {id:'diger', metin:'Diğer', emoji:'📍'}
+  {id:'all', metin:'Tümü', emoji: String.fromCodePoint(0x1F4CD)},
+  {id:'cop', metin:'Çöp-Moloz-Temizlik', emoji: String.fromCodePoint(0x1F5D1)},
+  {id:'yol', metin:'Yol ve Kaldırım', emoji: String.fromCodePoint(0x1F573)},
+  {id:'yesil', metin:'Yeşil Alan-Park-Bahçe', emoji: String.fromCodePoint(0x1F333)},
+  {id:'su', metin:'Su ve Kanalizasyon', emoji: String.fromCodePoint(0x1F4A7)},
+  {id:'toplu', metin:'Toplu Taşıma', emoji: String.fromCodePoint(0x1F68C)},
+  {id:'trafik', metin:'Trafik ve Otopark', emoji: String.fromCodePoint(0x1F697)},
+  {id:'yaya', metin:'Yaya Güvenliği', emoji: String.fromCodePoint(0x1F6B8)},
+  {id:'gurultu', metin:'Gürültü ve Görüntü', emoji: String.fromCodePoint(0x1F50A)},
+  {id:'diger', metin:'Diğer', emoji: String.fromCodePoint(0x1F4CD)}
 ];
 
 var categories={

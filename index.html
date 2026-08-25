@@ -1,173 +1,152 @@
-<!DOCTYPE html>
+ 
+   
+
+
+        <!DOCTYPE html>
 <html lang="tr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taşköprü Gazetesi Adana İhbar Haritası - Taşköprü Gazetesi</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; }
-        .header { background: #e31e24; color: white; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header h1 { font-size: 1.5rem; margin-bottom: 5px; }
-        .header p { font-size: 0.9rem; opacity: 0.9; }
-        .filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 15px; background: white; border-bottom: 1px solid #ddd; }
-        .filter-btn { padding: 6px 14px; border: 2px solid #e31e24; background: white; color: #e31e24; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; white-space: nowrap; }
-        .filter-btn:hover, .filter-btn.active { background: #e31e24; color: white; }
-        #map { height: calc(100vh - 200px); width: 100%; z-index: 1; }
-        .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
-        .ihbar-popup h3 { color: #e31e24; margin-bottom: 8px; font-size: 1.1rem; }
-        .ihbar-popup p { margin-bottom: 6px; font-size: 0.9rem; color: #333; }
-        .ihbar-popup .label { font-weight: bold; color: #555; }
-        .ihbar-popup .gorsel-link { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 0.85rem; }
-        .ihbar-popup .gorsel-link:hover { background: #218838; }
-        .ihbar-popup .tarih { font-size: 0.8rem; color: #888; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px; }
-        .stats { display: flex; justify-content: center; gap: 20px; padding: 10px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
-        .stat-item { text-align: center; }
-        .stat-number { font-size: 1.5rem; font-weight: bold; color: #e31e24; }
-        .stat-label { font-size: 0.8rem; color: #666; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adana İhbar Haritası</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+body { background: #f4f6f9; }
+.ihbar-header { background: #e31e24; color: #fff; padding: 15px; text-align: center; }
+.ihbar-header h3 { margin: 0; font-size: 1.3rem; }
+.ihbar-stats { display: flex; justify-content: center; gap: 15px; padding: 8px; background: #fff; border-bottom: 1px solid #ddd; }
+.ihbar-stat { text-align: center; }
+.ihbar-stat-num { font-size: 1.3rem; font-weight: bold; color: #e31e24; }
+.ihbar-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 10px; background: #fff; border-bottom: 1px solid #ddd; }
+.ihbar-btn { padding: 5px 10px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 15px; cursor: pointer; font-weight: 600; font-size: .8rem; }
+.ihbar-btn.active { background: #e31e24; color: #fff; }
+#map { height: 100vh; width: 100%; }
+.ihbar-load { text-align: center; padding: 30px; color: #666; }
+</style>
 </head>
 <body>
-    <div class="header">
-        <h1> Adana İhbar ve Talep Haritası</h1>
-        <p>Vatandaşlarımızdan gelen ihbarların anlık harita görünümü</p>
-    </div>
+<div class="ihbar-header"><h3>📍 Adana İhbar Haritası</h3></div>
+<div class="ihbar-stats">
+<div class="ihbar-stat"><div class="ihbar-stat-num" id="totalC">0</div><div>Toplam</div></div>
+<div class="ihbar-stat"><div class="ihbar-stat-num" id="visC">0</div><div>Gösterilen</div></div>
+</div>
+<div class="ihbar-filters" id="filterBox"></div>
+<div id="ihbar-load" class="ihbar-load">Yükleniyor...</div>
+<div id="map"></div>
 
-    <div class="stats">
-        <div class="stat-item">
-            <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">Toplam İhbar</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number" id="visibleCount">0</div>
-            <div class="stat-label">Görüntülenen</div>
-        </div>
-    </div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+var api="https://script.google.com/macros/s/AKfycbxqgNmsEqgpgFb8vXM_2AjEez90J401544k1uv9rODoWhmO-vIPFQEXkjSz-aAwnB9w/exec";
+var map,markers=[],data=[];
 
-    <div class="filters">
-        <button class="filter-btn active" onclick="filterMap('tumu', this)">Tümü</button>
-        <button class="filter-btn" onclick="filterMap('Çöp-Moloz-Temizlik', this)">🗑️ Çöp-Moloz-Temizlik</button>
-        <button class="filter-btn" onclick="filterMap('Yol ve Kaldırım', this)">🕳️ Yol ve Kaldırım</button>
-        <button class="filter-btn" onclick="filterMap('Yeşil Alan-Park-Bahçe Problemleri', this)">🌳 Yeşil Alan-Park-Bahçe</button>
-        <button class="filter-btn" onclick="filterMap('Su ve Kanalizasyon', this)">💧 Su ve Kanalizasyon</button>
-        <button class="filter-btn" onclick="filterMap('Toplu Taşıma', this)">🚌 Toplu Taşıma</button>
-        <button class="filter-btn" onclick="filterMap('Trafik ve Otopark', this)">🚗 Trafik ve Otopark</button>
-        <button class="filter-btn" onclick="filterMap('Yaya Güvenliği', this)"> Yaya Güvenliği</button>
-        <button class="filter-btn" onclick="filterMap('Gürültü ve Görüntü Kirliliği', this)">🔊 Gürültü ve Görüntü</button>
-        <button class="filter-btn" onclick="filterMap('Diğer', this)"> Diğer</button>
-    </div>
+// TÜM EMOJİLER KONTROL EDİLDİ VE GARANTİLENDİ
+var butonlar=[
+  {id:'all', metin:'Tümü', emoji:'📍'},
+  {id:'cop', metin:'Çöp-Moloz-Temizlik', emoji:'🗑️'},
+  {id:'yol', metin:'Yol ve Kaldırım', emoji:'🕳️'},
+  {id:'yesil', metin:'Yeşil Alan-Park-Bahçe', emoji:'🌳'}, 
+  {id:'su', metin:'Su ve Kanalizasyon', emoji:'💧'},
+  {id:'toplu', metin:'Toplu Taşıma', emoji:'🚌'},
+  {id:'trafik', metin:'Trafik ve Otopark', emoji:'🚗'},
+  {id:'yaya', metin:'Yaya Güvenliği', emoji:'🚸'},
+  {id:'gurultu', metin:'Gürültü ve Görüntü', emoji:'🔊'},
+  {id:'diger', metin:'Diğer', emoji:'📍'}
+];
 
-    <div id="loading" class="loading">️ Harita verileri yükleniyor, lütfen bekleyin...</div>
-    <div id="map" style="display: none;"></div>
+var categories={
+  'Çöp-Moloz-Temizlik':'cop',
+  'Yol ve Kaldırım':'yol',
+  'Yeşil Alan-Park-Bahçe Problemleri':'yesil',
+  'Su ve Kanalizasyon':'su',
+  'Toplu Taşıma':'toplu',
+  'Trafik ve Otopark':'trafik',
+  'Yaya Güvenliği':'yaya',
+  'Gürültü ve Görüntü Kirliliği':'gurultu'
+};
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbxqgNmsEqgpgFb8vXM_2AjEez90J401544k1uv9rODoWhmO-vIPFQEXkjSz-aAwnB9w/exec";
+function getEmoji(tur){
+  if(!tur) return '📍';
+  // Yeşil alan için ekstra garanti kontrolü
+  if(tur.indexOf('Yeşil')!==-1 || tur.indexOf('Park')!==-1 || tur.indexOf('Bahçe')!==-1) return '🌳';
+  
+  for(var k in categories){
+    if(tur.indexOf(k)!==-1){
+      for(var i=0;i<butonlar.length;i++){
+        if(butonlar[i].id===categories[k]) return butonlar[i].emoji;
+      }
+    }
+  }
+  return '📍';
+}
 
-        let map;
-        let markers = [];
-        let allData = [];
+function getKey(tur){
+  for(var k in categories){
+    if(tur && tur.indexOf(k)!==-1) return categories[k];
+  }
+  return 'diger';
+}
 
-        const kategoriEmojileri = {
-            'Çöp-Moloz-Temizlik': '🗑️',
-            'Yol ve Kaldırım': '🕳️',
-            'Yeşil Alan-Park-Bahçe Problemleri': '',
-            'Su ve Kanalizasyon': '💧',
-            'Toplu Taşıma': '🚌',
-            'Trafik ve Otopark': '🚗',
-            'Yaya Güvenliği': '🚸',
-            'Gürültü ve Görüntü Kirliliği': '🔊',
-            'Diğer': '📍'
-        };
+function butonlariOlustur(){
+  var box=document.getElementById('filterBox');
+  box.innerHTML='';
+  for(var i=0;i<butonlar.length;i++){
+    var b=butonlar[i];
+    var btn=document.createElement('button');
+    btn.className='ihbar-btn'+(i===0?' active':'');
+    btn.setAttribute('data-id',b.id);
+    btn.innerHTML=b.emoji+' '+b.metin;
+    btn.onclick=function(){
+      document.querySelectorAll('.ihbar-btn').forEach(function(x){x.classList.remove('active');});
+      this.classList.add('active');
+      filtre(this.getAttribute('data-id'));
+    };
+    box.appendChild(btn);
+  }
+}
 
-        function getEmoji(tur) {
-            if (!tur) return '📍';
-            if (kategoriEmojileri[tur]) return kategoriEmojileri[tur];
-            for (const [key, emoji] of Object.entries(kategoriEmojileri)) {
-                if (tur.includes(key) || key.includes(tur)) return emoji;
-            }
-            return '';
-        }
+function initMap(){
+  butonlariOlustur();
+  map=L.map('map',{center:[37.0000,35.3213],zoom:12});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap | Taşköprü Gazetesi'}).addTo(map);
+  
+  fetch(api).then(function(r){return r.json();}).then(function(d){
+    data=d;
+    document.getElementById('totalC').textContent=d.length;
+    render(data);
+  }).catch(function(e){
+    document.getElementById('ihbar-load').innerHTML='Harita verileri yüklenemedi';
+  });
+}
 
-        function initMap() {
-            map = L.map('map').setView([37.0000, 35.3213], 12);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors | Taşköprü Gazetesi',
-                maxZoom: 19
-            }).addTo(map);
-            fetchData();
-        }
+function render(items){
+  markers.forEach(function(m){map.removeLayer(m);});
+  markers=[];
+  items.forEach(function(item){
+    if(item.koordinat && item.koordinat.lat){
+      var icon=L.divIcon({
+        className:'custom',
+        html:'<div style="font-size:22px;background:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,0.3);">'+getEmoji(item.tur)+'</div>',
+        iconSize:[36,36],
+        iconAnchor:[18,36]
+      });
+      var popup='<div style="min-width:200px;"><b>'+getEmoji(item.tur)+' '+item.tur+'</b><br><br>📍 <b>Adres:</b> '+item.adres+'<br><br>📝 <b>Açıklama:</b> '+item.aciklama+'</div>';
+      markers.push(L.marker([item.koordinat.lat,item.koordinat.lng],{icon:icon}).bindPopup(popup).addTo(map));
+    }
+  });
+  document.getElementById('visC').textContent=markers.length;
+}
 
-        async function fetchData() {
-            try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                allData = data;
-                
-                document.getElementById('loading').style.display = 'none';
-                document.getElementById('map').style.display = 'block';
-                document.getElementById('totalCount').textContent = data.length;
-                
-                setTimeout(() => { map.invalidateSize(); }, 100);
-                renderMarkers(allData);
-            } catch (error) {
-                console.error("Veri çekme hatası:", error);
-                document.getElementById('loading').innerHTML = "❌ Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.";
-            }
-        }
+function filtre(cat){
+  if(cat==='all'){
+    render(data);
+  } else {
+    var filtered=data.filter(function(i){return getKey(i.tur)===cat;});
+    render(filtered);
+  }
+}
 
-        function renderMarkers(data) {
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
-
-            data.forEach(item => {
-                if (item.koordinat && item.koordinat.lat && item.koordinat.lng) {
-                    const iconEmoji = getEmoji(item.tur);
-                    const customIcon = L.divIcon({
-                        className: 'custom-marker',
-                        html: `<div style="font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${iconEmoji}</div>`,
-                        iconSize: [40, 40],
-                        iconAnchor: [20, 40]
-                    });
-
-                    const gorselHtml = item.gorsel ? `<a href="${item.gorsel}" target="_blank" class="gorsel-link">📷 Görseli Görüntüle</a>` : '';
-                    const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR') : 'Belirtilmemiş';
-
-                    const popupContent = `
-                        <div class="ihbar-popup">
-                            <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
-                            <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
-                            <p><span class="label">📝 Açıklama:</span> ${item.aciklama || 'Açıklama yok'}</p>
-                            ${gorselHtml}
-                            <div class="tarih">🕒 ${tarihFormatli}</div>
-                        </div>
-                    `;
-
-                    const marker = L.marker([item.koordinat.lat, item.koordinat.lng], { icon: customIcon })
-                        .bindPopup(popupContent)
-                        .addTo(map);
-                    
-                    markers.push(marker);
-                }
-            });
-
-            document.getElementById('visibleCount').textContent = markers.length;
-        }
-
-        function filterMap(tur, btnElement) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-
-            if (tur === 'tumu') {
-                renderMarkers(allData);
-            } else {
-                const filteredData = allData.filter(item => item.tur === tur);
-                renderMarkers(filteredData);
-            }
-        }
-
-        window.onload = initMap;
-    </script>
+window.addEventListener('load',function(){setTimeout(initMap,100);});
+window.addEventListener('resize',function(){if(map)map.invalidateSize();});
+</script>
 </body>
 </html>

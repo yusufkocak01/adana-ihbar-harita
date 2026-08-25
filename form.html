@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adana İhbar Listesi - Taşköprü Gazetesi</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
+body { background: #f4f6f9; padding: 15px; }
+.container { max-width: 1200px; margin: 0 auto; }
+.header { background: #e31e24; color: #fff; padding: 20px; border-radius: 12px 12px 0 0; text-align: center; }
+.header h2 { font-size: 1.4rem; margin-bottom: 5px; }
+.header p { font-size: 0.9rem; opacity: 0.9; }
+.stats { display: flex; justify-content: center; gap: 20px; padding: 12px; background: #fff; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-num { font-size: 1.4rem; font-weight: bold; color: #e31e24; }
+.stat-label { font-size: 0.8rem; color: #666; }
+.controls { padding: 12px; background: #fff; border-bottom: 1px solid #ddd; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-items: center; }
+.search-box { padding: 8px 12px; border: 2px solid #ddd; border-radius: 20px; font-size: 0.9rem; width: 250px; max-width: 100%; outline: none; }
+.search-box:focus { border-color: #e31e24; }
+.filter-btn { padding: 6px 12px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.8rem; transition: all 0.3s; }
+.filter-btn:hover, .filter-btn.active { background: #e31e24; color: #fff; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; padding: 15px; }
+.card { background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; }
+.card:hover { transform: translateY(-3px); box-shadow: 0 4px 15px rgba(0,0,0,0.15); }
+.card-thumb { width: 100%; height: 180px; background: #eee; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
+.card-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.card-thumb .no-image { font-size: 3rem; opacity: 0.3; }
+.card-thumb .play-icon { position: absolute; font-size: 3rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.5); }
+.card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
+.card-tur { display: inline-block; padding: 4px 10px; background: #e31e24; color: #fff; border-radius: 12px; font-size: 0.75rem; font-weight: 600; margin-bottom: 8px; align-self: flex-start; }
+.card-ad { font-size: 1.05rem; font-weight: bold; color: #333; margin-bottom: 4px; }
+.card-ad .anonim { color: #888; font-style: italic; }
+.card-adres { font-size: 0.85rem; color: #666; margin-bottom: 8px; }
+.card-aciklama { font-size: 0.9rem; color: #444; line-height: 1.5; flex: 1; margin-bottom: 10px; }
+.card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 10px; border-top: 1px solid #eee; font-size: 0.8rem; color: #888; }
+.card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
+.card-footer a:hover { text-decoration: underline; }
+.loading { text-align: center; padding: 50px; color: #666; font-size: 1.1rem; }
+.error { text-align: center; padding: 30px; color: #e31e24; background: #fff; border-radius: 12px; margin: 15px; }
+
+/* Lightbox */
+.lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
+.lightbox.active { display: flex; }
+.lightbox img, .lightbox video { max-width: 100%; max-height: 90vh; border-radius: 8px; }
+.lightbox-close { position: absolute; top: 20px; right: 30px; color: #fff; font-size: 2.5rem; cursor: pointer; background: none; border: none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h2>📋 Adana İhbar ve Talep Listesi</h2>
+    <p>Vatandaşlarımızdan gelen ihbarların detaylı listesi</p>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-num" id="totalCount">0</div><div class="stat-label">Toplam İhbar</div></div>
+    <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
+  </div>
+  <div class="controls">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres veya açıklama ara...">
+  </div>
+  <div class="controls" id="filterBox"></div>
+  <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
+  <div id="grid" class="grid" style="display:none;"></div>
+  <div id="error" class="error" style="display:none;"></div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" onclick="closeLightbox()"></button>
+  <div id="lightboxContent"></div>
+</div>
+
+<script>
+var API_URL = "https://script.google.com/macros/s/AKfycbwAhQ5yRel0LcbPIY7d-3JwieeoZBgZ3g6f1MjQXWQ74MQHnyPzqj0tx9woZCUFhwJp/exec";
+var allData = [];
+var filteredData = [];
+var activeFilter = 'all';
+var searchQuery = '';
+
+var kategoriler = [
+  {id: 'all', metin: 'Tümü', emoji: '📍'},
+  {id: 'cop', metin: 'Çöp-Moloz-Temizlik', emoji: '🗑️'},
+  {id: 'yol', metin: 'Yol ve Kaldırım', emoji: '🕳️'},
+  {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: '🌳'},
+  {id: 'su', metin: 'Su ve Kanalizasyon', emoji: '💧'},
+  {id: 'toplu', metin: 'Toplu Taşıma', emoji: '🚌'},
+  {id: 'trafik', metin: 'Trafik ve Otopark', emoji: '🚗'},
+  {id: 'yaya', metin: 'Yaya Güvenliği', emoji: '🚸'},
+  {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: '🔊'},
+  {id: 'diger', metin: 'Diğer', emoji: '📍'}
+];
+
+var kategoriMap = {
+  'Çöp-Moloz-Temizlik': 'cop',
+  'Yol ve Kaldırım': 'yol',
+  'Yeşil Alan-Park-Bahçe Problemleri': 'yesil',
+  'Su ve Kanalizasyon': 'su',
+  'Toplu Taşıma': 'toplu',
+  'Trafik ve Otopark': 'trafik',
+  'Yaya Güvenliği': 'yaya',
+  'Gürültü ve Görüntü Kirliliği': 'gurultu'
+};
+
+function getKategoriKey(tur) {
+  if (!tur) return 'diger';
+  for (var k in kategoriMap) {
+    if (tur.indexOf(k) !== -1) return kategoriMap[k];
+  }
+  return 'diger';
+}
+
+function getEmoji(tur) {
+  var key = getKategoriKey(tur);
+  for (var i = 0; i < kategoriler.length; i++) {
+    if (kategoriler[i].id === key) return kategoriler[i].emoji;
+  }
+  return '';
+}
+
+function butonlariOlustur() {
+  var box = document.getElementById('filterBox');
+  box.innerHTML = '';
+  for (var i = 0; i < kategoriler.length; i++) {
+    var k = kategoriler[i];
+    var btn = document.createElement('button');
+    btn.className = 'filter-btn' + (i === 0 ? ' active' : '');
+    btn.setAttribute('data-id', k.id);
+    btn.textContent = k.emoji + ' ' + k.metin;
+    btn.onclick = function() {
+      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      activeFilter = this.getAttribute('data-id');
+      uygulaFiltre();
+    };
+    box.appendChild(btn);
+  }
+}
+
+function tarihFormatla(tarihStr) {
+  if (!tarihStr) return 'Belirtilmemiş';
+  try {
+    var d = new Date(tarihStr);
+    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch(e) {
+    return tarihStr;
+  }
+}
+
+function kartOlustur(item) {
+  var emoji = getEmoji(item.tur);
+  var isAnonim = (item.adSoyad === 'Anonim' || item.adSoyad === 'Gizli');
+  var adHtml = isAnonim 
+    ? '<span class="anonim">🔒 Anonim İhbarcı</span>' 
+    : '👤 ' + item.adSoyad;
+  
+  var thumbHtml = '';
+  if (item.gorsel) {
+    var gorselUrl = item.gorsel;
+    var isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(gorselUrl) || gorselUrl.indexOf('video') !== -1;
+    if (isVideo) {
+      thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + gorselUrl.replace(/'/g, "\\'") + '\', true)"><div class="play-icon">▶️</div></div>';
+    } else {
+      thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + gorselUrl.replace(/'/g, "\\'") + '\', false)"><img src="' + gorselUrl + '" alt="İhbar görseli" onerror="this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
+    }
+  } else {
+    thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
+  }
+  
+  var haritaLinkHtml = item.haritaLink 
+    ? '<a href="' + item.haritaLink + '" target="_blank">🗺️ Haritada Gör</a>' 
+    : '<span>📍 ' + (item.adres || 'Adres belirtilmemiş') + '</span>';
+  
+  return '<div class="card">' +
+    thumbHtml +
+    '<div class="card-body">' +
+      '<span class="card-tur">' + emoji + ' ' + (item.tur || 'Genel İhbar') + '</span>' +
+      '<div class="card-ad">' + adHtml + '</div>' +
+      '<div class="card-adres">📍 ' + (item.adres || 'Adres belirtilmemiş') + '</div>' +
+      '<div class="card-aciklama">' + (item.aciklama || 'Açıklama yok') + '</div>' +
+      '<div class="card-footer">' +
+        '<span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
+        haritaLinkHtml +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function uygulaFiltre() {
+  filteredData = allData.filter(function(item) {
+    var kategoriEslesme = (activeFilter === 'all') || (getKategoriKey(item.tur) === activeFilter);
+    var aramaEslesme = true;
+    if (searchQuery) {
+      var q = searchQuery.toLowerCase();
+      aramaEslesme = (item.adres && item.adres.toLowerCase().indexOf(q) !== -1) ||
+                     (item.aciklama && item.aciklama.toLowerCase().indexOf(q) !== -1) ||
+                     (item.tur && item.tur.toLowerCase().indexOf(q) !== -1);
+    }
+    return kategoriEslesme && aramaEslesme;
+  });
+  
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  filteredData.forEach(function(item) {
+    grid.innerHTML += kartOlustur(item);
+  });
+  
+  document.getElementById('visibleCount').textContent = filteredData.length;
+  
+  if (filteredData.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: #888;">🔍 Bu kriterlere uygun ihbar bulunamadı.</div>';
+  }
+}
+
+function openLightbox(url, isVideo) {
+  var lb = document.getElementById('lightbox');
+  var content = document.getElementById('lightboxContent');
+  if (isVideo) {
+    content.innerHTML = '<video src="' + url + '" controls autoplay style="max-width:100%; max-height:90vh;"></video>';
+  } else {
+    content.innerHTML = '<img src="' + url + '" alt="Büyük görsel" onerror="this.parentElement.innerHTML=\'<p style=color:#fff>Görsel yüklenemedi</p>\'">';
+  }
+  lb.classList.add('active');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.getElementById('lightboxContent').innerHTML = '';
+}
+
+// Arama kutusu
+document.getElementById('searchBox').addEventListener('input', function(e) {
+  searchQuery = e.target.value.trim();
+  uygulaFiltre();
+});
+
+// Lightbox dışına tıklayınca kapat
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+// ESC ile kapat
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+// Başlat
+function init() {
+  butonlariOlustur();
+  fetch(API_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allData = data;
+      document.getElementById('totalCount').textContent = data.length;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('grid').style.display = 'grid';
+      uygulaFiltre();
+    })
+    .catch(function(e) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = '❌ İhbarlar yüklenirken hata oluştu. Lütfen sayfayı yenileyin.';
+    });
+}
+
+window.addEventListener('load', function() { setTimeout(init, 100); });
+</script>
+</body>
+</html>

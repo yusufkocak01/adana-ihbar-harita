@@ -4,7 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taşköprü Gazetesi Adana İhbar Haritası - Taşköprü Gazetesi</title>
+    
+    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- 🆕 Marker Cluster CSS (Üst üste binenleri gruplar) -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
+    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f6f9; }
@@ -26,9 +32,15 @@
         .stat-item { text-align: center; }
         .stat-number { font-size: 1.5rem; font-weight: bold; color: #e31e24; }
         .stat-label { font-size: 0.8rem; color: #666; }
-        
-        /* Popup içindeki görsel için stil */
         .popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; border: 1px solid #eee; }
+        
+        /* Cluster dairelerinin rengini Taşköprü kırmızısına uyarlayalım */
+        .marker-cluster-small { background-color: rgba(227, 30, 36, 0.2); }
+        .marker-cluster-small div { background-color: rgba(227, 30, 36, 0.6); }
+        .marker-cluster-medium { background-color: rgba(227, 30, 36, 0.2); }
+        .marker-cluster-medium div { background-color: rgba(227, 30, 36, 0.6); }
+        .marker-cluster-large { background-color: rgba(227, 30, 36, 0.2); }
+        .marker-cluster-large div { background-color: rgba(227, 30, 36, 0.6); }
     </style>
 </head>
 <body>
@@ -64,14 +76,17 @@
     <div id="loading" class="loading">⏳ Harita verileri yükleniyor, lütfen bekleyin...</div>
     <div id="map" style="display: none;"></div>
 
+    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- 🆕 Marker Cluster JS -->
+    <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    
     <script>
-        // 🆕 YENİ VE ÇALIŞAN API LİNKİ
         const API_URL = "https://script.google.com/macros/s/AKfycbyZlA_GMA1SeK4tNVUMDU_hxxDOPA6DsfW0iAkKfofxiYBOSWGu8085ntg31qnFY9nt/exec";
         const FALLBACK_IMAGE = "https://via.placeholder.com/400x225/e31e24/ffffff?text=TASKOPRU+GAZETESI";
 
         let map;
-        let markers = [];
+        let markersCluster; // 🆕 Artık dizi değil, cluster grubu kullanıyoruz
         let allData = [];
 
         const kategoriEmojileri = {
@@ -101,6 +116,15 @@
                 attribution: '© OpenStreetMap contributors | Taşköprü Gazetesi',
                 maxZoom: 19
             }).addTo(map);
+            
+            // 🆕 Cluster grubunu başlat ve haritaya ekle
+            markersCluster = L.markerClusterGroup({
+                spiderfyOnMaxZoom: true, // En yüksek zoom'da örümcek ağı gibi aç
+                showCoverageOnHover: false,
+                zoomToBoundsOnClick: true // Tıklayınca o bölgeye zoom yap
+            });
+            map.addLayer(markersCluster);
+            
             fetchData();
         }
 
@@ -123,11 +147,10 @@
         }
 
         function renderMarkers(data) {
-            markers.forEach(marker => map.removeLayer(marker));
-            markers = [];
+            // 🆕 Eski markerları haritadan değil, cluster grubundan temizle
+            markersCluster.clearLayers();
 
             data.forEach(item => {
-                // 🛡️ DÜZELTME: Koordinat yoksa Adana merkezini kullan. Böylece sheets'teki hiçbir veri kaybolmaz.
                 const lat = item.koordinat?.lat || 37.0000;
                 const lng = item.koordinat?.lng || 35.3213;
 
@@ -139,12 +162,12 @@
                     iconAnchor: [20, 40]
                 });
 
-                // 🛡️ DÜZELTME: Siyah ekran (video) sorununu çözen onerror ve önizleme eklendi.
                 const gorselHtml = item.gorsel 
                     ? `<img src="${item.gorsel}" onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';" class="popup-img" alt="İhbar"><a href="${item.gorsel}" target="_blank" class="gorsel-link">📷 Görseli/Videoyu Görüntüle</a>` 
                     : '';
                 
                 const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR') : 'Belirtilmemiş';
+                const coordsWarning = (!item.koordinat?.lat || !item.koordinat?.lng) ? '<p style="font-size:0.75rem; color:#d97706; margin-top:4px;">⚠️ Konum alınamadı, Adana merkezde gösteriliyor.</p>' : '';
 
                 const popupContent = `
                     <div class="ihbar-popup">
@@ -152,23 +175,23 @@
                         <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
                         <p><span class="label">📝 Açıklama:</span> ${item.aciklama || 'Açıklama yok'}</p>
                         ${gorselHtml}
+                        ${coordsWarning}
                         <div class="tarih">🕒 ${tarihFormatli}</div>
                     </div>
                 `;
 
                 const marker = L.marker([lat, lng], { icon: customIcon })
-                    .bindPopup(popupContent, { maxWidth: 300 })
-                    .addTo(map);
+                    .bindPopup(popupContent, { maxWidth: 300 });
                 
-                markers.push(marker);
+                // 🆅 Marker'ı doğrudan haritaya değil, cluster grubuna ekle
+                markersCluster.addLayer(marker);
             });
 
-            document.getElementById('visibleCount').textContent = markers.length;
+            document.getElementById('visibleCount').textContent = data.length;
             
             // Haritayı tüm markerları gösterecek şekilde otomatik yakınlaştır
-            if (markers.length > 0) {
-                const group = new L.featureGroup(markers);
-                map.fitBounds(group.getBounds().pad(0.1));
+            if (data.length > 0) {
+                map.fitBounds(markersCluster.getBounds().pad(0.1));
             }
         }
 

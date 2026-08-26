@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taşköprü Gazetesi Adana İhbar Haritası</title>
+    <title>Taşköprü Gazetesi Adana İhbar Haritası - Taşköprü Gazetesi</title>
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
@@ -16,36 +16,19 @@
         .filter-btn:hover, .filter-btn.active { background: #e31e24; color: white; }
         #map { height: calc(100vh - 200px); width: 100%; z-index: 1; }
         .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
-        
-        /* Popup Stilleri */
-        .ihbar-popup { font-size: 0.9rem; }
         .ihbar-popup h3 { color: #e31e24; margin-bottom: 8px; font-size: 1.1rem; }
-        .ihbar-popup p { margin-bottom: 6px; color: #333; }
+        .ihbar-popup p { margin-bottom: 6px; font-size: 0.9rem; color: #333; }
         .ihbar-popup .label { font-weight: bold; color: #555; }
-        
-        /* Görsel Önizleme (Siyah ekran sorununu çözer) */
-        .popup-img {
-            width: 100%;
-            height: 120px;
-            object-fit: cover;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            border: 1px solid #eee;
-        }
-        
-        .ihbar-popup .gorsel-link { 
-            display: inline-block; margin-top: 8px; padding: 6px 12px; 
-            background: #28a745; color: white; text-decoration: none; 
-            border-radius: 4px; font-size: 0.85rem; text-align: center; width: 100%;
-        }
+        .ihbar-popup .gorsel-link { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 0.85rem; text-align: center; width: 100%; }
         .ihbar-popup .gorsel-link:hover { background: #218838; }
         .ihbar-popup .tarih { font-size: 0.8rem; color: #888; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px; }
-        .ihbar-popup .coords-warning { font-size: 0.75rem; color: #d97706; margin-top: 4px; font-style: italic; }
-
         .stats { display: flex; justify-content: center; gap: 20px; padding: 10px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
-        .stat-item { text-align: center; min-width: 100px; }
+        .stat-item { text-align: center; }
         .stat-number { font-size: 1.5rem; font-weight: bold; color: #e31e24; }
         .stat-label { font-size: 0.8rem; color: #666; }
+        
+        /* Popup içindeki görsel için stil */
+        .popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; border: 1px solid #eee; }
     </style>
 </head>
 <body>
@@ -57,24 +40,24 @@
     <div class="stats">
         <div class="stat-item">
             <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">Toplam Yayınlanan</div>
+            <div class="stat-label">Toplam İhbar</div>
         </div>
         <div class="stat-item">
             <div class="stat-number" id="visibleCount">0</div>
-            <div class="stat-label">Haritada Gösterilen</div>
+            <div class="stat-label">Görüntülenen</div>
         </div>
     </div>
 
     <div class="filters">
-        <button class="filter-btn active" onclick="filterMap('tumu', this)">Tümü</button>
-        <button class="filter-btn" onclick="filterMap('Çöp-Moloz-Temizlik', this)">🗑️ Çöp-Moloz</button>
-        <button class="filter-btn" onclick="filterMap('Yol ve Kaldırım', this)">🕳️ Yol-Kaldırım</button>
-        <button class="filter-btn" onclick="filterMap('Yeşil Alan-Park-Bahçe Problemleri', this)">🌳 Yeşil Alan</button>
-        <button class="filter-btn" onclick="filterMap('Su ve Kanalizasyon', this)">💧 Su-Kanalizasyon</button>
+        <button class="filter-btn active" onclick="filterMap('tumu', this)">📍 Tümü</button>
+        <button class="filter-btn" onclick="filterMap('Çöp-Moloz-Temizlik', this)">🗑️ Çöp-Moloz-Temizlik</button>
+        <button class="filter-btn" onclick="filterMap('Yol ve Kaldırım', this)">🕳️ Yol ve Kaldırım</button>
+        <button class="filter-btn" onclick="filterMap('Yeşil Alan-Park-Bahçe Problemleri', this)">🌳 Yeşil Alan-Park-Bahçe</button>
+        <button class="filter-btn" onclick="filterMap('Su ve Kanalizasyon', this)">💧 Su ve Kanalizasyon</button>
         <button class="filter-btn" onclick="filterMap('Toplu Taşıma', this)">🚌 Toplu Taşıma</button>
-        <button class="filter-btn" onclick="filterMap('Trafik ve Otopark', this)">🚗 Trafik</button>
+        <button class="filter-btn" onclick="filterMap('Trafik ve Otopark', this)">🚗 Trafik ve Otopark</button>
         <button class="filter-btn" onclick="filterMap('Yaya Güvenliği', this)">🚸 Yaya Güvenliği</button>
-        <button class="filter-btn" onclick="filterMap('Gürültü ve Görüntü Kirliliği', this)">🔊 Gürültü</button>
+        <button class="filter-btn" onclick="filterMap('Gürültü ve Görüntü Kirliliği', this)">🔊 Gürültü ve Görüntü</button>
         <button class="filter-btn" onclick="filterMap('Diğer', this)">📍 Diğer</button>
     </div>
 
@@ -85,11 +68,7 @@
     <script>
         // 🆕 YENİ VE ÇALIŞAN API LİNKİ
         const API_URL = "https://script.google.com/macros/s/AKfycbyZlA_GMA1SeK4tNVUMDU_hxxDOPA6DsfW0iAkKfofxiYBOSWGu8085ntg31qnFY9nt/exec";
-        
-        // Yedek Görsel ve Koordinat
         const FALLBACK_IMAGE = "https://via.placeholder.com/400x225/e31e24/ffffff?text=TASKOPRU+GAZETESI";
-        const DEFAULT_LAT = 37.0000;
-        const DEFAULT_LNG = 35.3213;
 
         let map;
         let markers = [];
@@ -117,7 +96,7 @@
         }
 
         function initMap() {
-            map = L.map('map').setView([DEFAULT_LAT, DEFAULT_LNG], 12);
+            map = L.map('map').setView([37.0000, 35.3213], 12);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors | Taşköprü Gazetesi',
                 maxZoom: 19
@@ -144,15 +123,13 @@
         }
 
         function renderMarkers(data) {
-            // Eski markerları temizle
             markers.forEach(marker => map.removeLayer(marker));
             markers = [];
 
             data.forEach(item => {
-                // 🛡️ KRİTİK DÜZELTME: Koordinat yoksa Adana merkezini kullan, ama silme!
-                const lat = item.koordinat?.lat || DEFAULT_LAT;
-                const lng = item.koordinat?.lng || DEFAULT_LNG;
-                const hasValidCoords = item.koordinat?.lat && item.koordinat?.lng;
+                // 🛡️ DÜZELTME: Koordinat yoksa Adana merkezini kullan. Böylece sheets'teki hiçbir veri kaybolmaz.
+                const lat = item.koordinat?.lat || 37.0000;
+                const lng = item.koordinat?.lng || 35.3213;
 
                 const iconEmoji = getEmoji(item.tur);
                 const customIcon = L.divIcon({
@@ -162,25 +139,19 @@
                     iconAnchor: [20, 40]
                 });
 
-                // 🛡️ KRİTİK DÜZELTME: Görsel yoksa veya videoysa yedek görsel kullan (onerror)
-                const imgUrl = item.gorsel || FALLBACK_IMAGE;
-                const gorselHtml = `
-                    <img src="${imgUrl}" onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';" class="popup-img" alt="İhbar">
-                    <a href="${item.gorsel || '#'}" target="_blank" class="gorsel-link" ${!item.gorsel ? 'style="background:#ccc; pointer-events:none;"' : ''}>
-                        ${item.gorsel ? '📷 Görseli/Videoyu Tam Boy Görüntüle' : '📷 Görsel Eklenmemiş'}
-                    </a>
-                `;
+                // 🛡️ DÜZELTME: Siyah ekran (video) sorununu çözen onerror ve önizleme eklendi.
+                const gorselHtml = item.gorsel 
+                    ? `<img src="${item.gorsel}" onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';" class="popup-img" alt="İhbar"><a href="${item.gorsel}" target="_blank" class="gorsel-link">📷 Görseli/Videoyu Görüntüle</a>` 
+                    : '';
                 
                 const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR') : 'Belirtilmemiş';
-                const coordsWarning = !hasValidCoords ? '<p class="coords-warning">⚠️ Konum alınamadı, Adana merkezde gösteriliyor.</p>' : '';
 
                 const popupContent = `
                     <div class="ihbar-popup">
                         <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
-                        ${gorselHtml}
                         <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
                         <p><span class="label">📝 Açıklama:</span> ${item.aciklama || 'Açıklama yok'}</p>
-                        ${coordsWarning}
+                        ${gorselHtml}
                         <div class="tarih">🕒 ${tarihFormatli}</div>
                     </div>
                 `;
@@ -194,7 +165,7 @@
 
             document.getElementById('visibleCount').textContent = markers.length;
             
-            // Haritayı markerlara göre otomatik yakınlaştır
+            // Haritayı tüm markerları gösterecek şekilde otomatik yakınlaştır
             if (markers.length > 0) {
                 const group = new L.featureGroup(markers);
                 map.fitBounds(group.getBounds().pad(0.1));

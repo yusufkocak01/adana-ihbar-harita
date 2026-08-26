@@ -1,174 +1,199 @@
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Adana İhbar Haritası</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-/* KRİTİK: Sayfa yapısını esnek (flex) hale getiriyoruz, donmayı önler */
-html, body { 
-  height: 100%; 
-  margin: 0; 
-  padding: 0; 
-  overflow: hidden; 
-  display: flex;
-  flex-direction: column;
-  font-family: Arial, sans-serif;
-  background: #f4f6f9; 
-}
-
-.ihbar-header, .ihbar-stats, .ihbar-filters { flex-shrink: 0; }
-.ihbar-header { background: #e31e24; color: #fff; padding: 12px; text-align: center; }
-.ihbar-header h3 { margin: 0; font-size: 1.2rem; }
-
-.ihbar-stats { display: flex; justify-content: center; gap: 15px; padding: 8px; background: #fff; border-bottom: 1px solid #ddd; }
-.ihbar-stat { text-align: center; }
-.ihbar-stat-num { font-size: 1.2rem; font-weight: bold; color: #e31e24; }
-.ihbar-stat-label { font-size: 0.7rem; color: #666; }
-
-.ihbar-filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 5px; padding: 8px; background: #fff; border-bottom: 1px solid #ddd; }
-.ihbar-btn { padding: 4px 8px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 15px; cursor: pointer; font-weight: 600; font-size: 0.7rem; white-space: nowrap; }
-.ihbar-btn.active { background: #e31e24; color: #fff; }
-
-/* HARİTA: Kalan TÜM boşluğu otomatik doldurur (Donma çözümü) */
-#map { 
-  flex-grow: 1; 
-  width: 100%; 
-  min-height: 300px; 
-  z-index: 1;
-}
-
-.ihbar-load { text-align: center; padding: 30px; color: #666; flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vatandaş İhbarları - Taşköprü Gazetesi</title>
+    <!-- Tailwind CSS (Hızlı ve Modern Tasarım İçin) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .brand-red { color: #e31e24; }
+        .bg-brand-red { background-color: #e31e24; }
+        .bg-brand-red:hover { background-color: #c4181d; }
+        /* Yükleniyor animasyonu */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #e31e24;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 40px auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
 </head>
-<body>
+<body class="bg-gray-50 min-h-screen flex flex-col">
 
-<div class="ihbar-header"><h3>📍 Adana İhbar Haritası</h3></div>
+    <!-- ÜST BAŞLIK -->
+    <header class="bg-brand-red text-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <img src="https://www.taskoprugazetesi.com/images/generals/logo.png?v=2119" alt="Taşköprü Gazetesi" class="h-12 bg-white rounded p-1">
+                <div>
+                    <h1 class="text-2xl font-bold tracking-wide">VATANDAŞ İHBARLARI</h1>
+                    <p class="text-sm opacity-90">Taşköprü Gazetesi İhbar Hattı</p>
+                </div>
+            </div>
+            <!-- İsteğe bağlı: Harita sayfasına link -->
+            <a href="harita.html" class="hidden md:flex items-center gap-2 bg-white text-red-600 px-4 py-2 rounded-lg font-semibold hover:bg-gray-100 transition">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0121 18.382V7.618a1 1 0 01-.806-.984A11.962 11.962 0 0015 7m0 13V7m0 0L9.553 4.553A1 1 0 009 4.118v.006" /></svg>
+                Haritada Gör
+            </a>
+        </div>
+    </header>
 
-<div class="ihbar-stats">
-  <div class="ihbar-stat"><div class="ihbar-stat-num" id="totalC">0</div><div class="ihbar-stat-label">Toplam</div></div>
-  <div class="ihbar-stat"><div class="ihbar-stat-num" id="visC">0</div><div class="ihbar-stat-label">Gösterilen</div></div>
-</div>
+    <!-- ANA İÇERİK -->
+    <main class="flex-grow max-w-6xl mx-auto px-4 py-8 w-full">
+        
+        <!-- Yükleniyor Göstergesi -->
+        <div id="loading-spinner" class="loader"></div>
+        <p id="loading-text" class="text-center text-gray-500">İhbarlar yükleniyor, lütfen bekleyin...</p>
 
-<div class="ihbar-filters" id="filterBox"></div>
+        <!-- İhbarların Listeleneceği Alan -->
+        <div id="ihbar-listesi-konteyner" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+            <!-- JavaScript burayı otomatik dolduracak -->
+        </div>
 
-<div id="ihbar-load" class="ihbar-load">⏳ Harita yükleniyor...</div>
-<div id="map" style="display: none;"></div>
+        <!-- Veri Yoksa Gösterilecek Mesaj -->
+        <div id="no-data-message" class="hidden text-center py-12">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+            </svg>
+            <h3 class="text-xl font-semibold text-gray-700">Henüz Yayınlanmış İhbar Yok</h3>
+            <p class="text-gray-500 mt-2">Yeni ihbarlar editör onayından sonra burada görünecektir.</p>
+        </div>
 
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-<script>
-var api = "https://script.google.com/macros/s/AKfycbziCoMxwAZS-vkOZZNOHhbQIGiD-d9E2JUe6JmwrT6wg--5thT-o6NDZx83ysTf_Kj-/exec
-";
-var map, markers = [], data = [];
+        <!-- Hata Mesajı -->
+        <div id="error-message" class="hidden text-center py-12 bg-red-50 rounded-lg border border-red-200">
+            <h3 class="text-xl font-semibold text-red-700">⚠️ Veriler Yüklenemedi</h3>
+            <p class="text-red-600 mt-2">Lütfen internet bağlantınızı kontrol edin veya daha sonra tekrar deneyin.</p>
+            <button onclick="location.reload()" class="mt-4 bg-brand-red text-white px-6 py-2 rounded-lg hover:bg-red-700 transition">Tekrar Dene</button>
+        </div>
 
-var butonlar = [
-  {id: 'all', metin: 'Tümü', emoji: String.fromCodePoint(0x1F4CD)},
-  {id: 'cop', metin: 'Çöp-Moloz', emoji: String.fromCodePoint(0x1F5D1)},
-  {id: 'yol', metin: 'Yol-Kaldırım', emoji: String.fromCodePoint(0x1F573)},
-  {id: 'yesil', metin: 'Yeşil-Park', emoji: String.fromCodePoint(0x1F333)},
-  {id: 'su', metin: 'Su-Kanal', emoji: String.fromCodePoint(0x1F4A7)},
-  {id: 'toplu', metin: 'Toplu Taşıma', emoji: String.fromCodePoint(0x1F68C)},
-  {id: 'trafik', metin: 'Trafik', emoji: String.fromCodePoint(0x1F697)},
-  {id: 'yaya', metin: 'Yaya', emoji: String.fromCodePoint(0x1F6B8)},
-  {id: 'gurultu', metin: 'Gürültü', emoji: String.fromCodePoint(0x1F50A)},
-  {id: 'diger', metin: 'Diğer', emoji: String.fromCodePoint(0x1F4CD)}
-];
+    </main>
 
-var categories = {
-  'Çöp-Moloz-Temizlik': 'cop', 'Yol ve Kaldırım': 'yol', 'Yeşil Alan-Park-Bahçe Problemleri': 'yesil',
-  'Yeşil Alan': 'yesil', 'Park': 'yesil', 'Su ve Kanalizasyon': 'su', 'Toplu Taşıma': 'toplu',
-  'Trafik ve Otopark': 'trafik', 'Yaya Güvenliği': 'yaya', 'Gürültü ve Görüntü Kirliliği': 'gurultu', 'Gürültü': 'gurultu'
-};
+    <!-- ALT BİLGİ -->
+    <footer class="bg-gray-800 text-gray-400 py-6 text-center text-sm">
+        <p>© 2026 Taşköprü Gazetesi. Tüm hakları saklıdır.</p>
+        <p class="mt-1 text-xs">Bu platformdaki ihbarlar vatandaşlar tarafından gönderilmekte olup, gazetecilik ilkeleri çerçevesinde değerlendirilmektedir.</p>
+    </footer>
 
-function getEmoji(tur) {
-  if (!tur) return String.fromCodePoint(0x1F4CD);
-  for (var k in categories) {
-    if (tur.indexOf(k) !== -1) {
-      for (var i = 0; i < butonlar.length; i++) {
-        if (butonlar[i].id === categories[k]) return butonlar[i].emoji;
-      }
-    }
-  }
-  return String.fromCodePoint(0x1F4CD);
-}
+    <!-- JAVASCRIPT KODLARI -->
+    <script>
+        // Google Apps Script Web App URL'niz
+        const API_URL = "https://script.google.com/macros/s/AKfycbziCoMxwAZS-vkOZZNOHhbQIGiD-d9E2JUe6JmwrT6wg--5thT-o6NDZx83ysTf_Kj-/exec";
+        
+        // Siyah ekran sorunu için yedek görsel (Taşköprü Gazetesi logolu kırmızı placeholder)
+        const FALLBACK_IMAGE = "https://via.placeholder.com/600x300/e31e24/ffffff?text=TASKOPRU+GAZETESI";
 
-function getKey(tur) {
-  for (var k in categories) { if (tur && tur.indexOf(k) !== -1) return categories[k]; }
-  return 'diger';
-}
+        async function loadReports() {
+            const spinner = document.getElementById('loading-spinner');
+            const loadingText = document.getElementById('loading-text');
+            const container = document.getElementById('ihbar-listesi-konteyner');
+            const noDataMsg = document.getElementById('no-data-message');
+            const errorMsg = document.getElementById('error-message');
 
-function butonlariOlustur() {
-  var box = document.getElementById('filterBox');
-  box.innerHTML = '';
-  for (var i = 0; i < butonlar.length; i++) {
-    var b = butonlar[i];
-    var btn = document.createElement('button');
-    btn.className = 'ihbar-btn' + (i === 0 ? ' active' : '');
-    btn.setAttribute('data-id', b.id);
-    btn.innerHTML = b.emoji + ' ' + b.metin;
-    btn.onclick = function() {
-      document.querySelectorAll('.ihbar-btn').forEach(function(x) { x.classList.remove('active'); });
-      this.classList.add('active');
-      filtre(this.getAttribute('data-id'));
-    };
-    box.appendChild(btn);
-  }
-}
+            try {
+                console.log("🔄 Google Sheets'ten veriler çekiliyor...");
+                const response = await fetch(API_URL);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP Hatası: ${response.status}`);
+                }
 
-function initMap() {
-  butonlariOlustur();
-  document.getElementById('ihbar-load').style.display = 'none';
-  document.getElementById('map').style.display = 'block';
+                const data = await response.json();
+                console.log("✅ Başarıyla gelen veri:", data);
 
-  map = L.map('map', { center: [37.0000, 35.3213], zoom: 12, zoomControl: true });
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© OpenStreetMap' }).addTo(map);
+                // Yükleniyor ekranını gizle
+                spinner.classList.add('hidden');
+                loadingText.classList.add('hidden');
 
-  setTimeout(function() { map.invalidateSize(true); }, 300);
+                // 1. DURUM: Hiç veri yoksa
+                if (!data || data.length === 0) {
+                    noDataMsg.classList.remove('hidden');
+                    return;
+                }
 
-  fetch(api).then(function(r) { return r.json(); }).then(function(d) {
-    data = d;
-    document.getElementById('totalC').textContent = d.length;
-    render(data);
-    setTimeout(function() { map.invalidateSize(true); }, 500);
-  }).catch(function(e) {
-    document.getElementById('ihbar-load').innerHTML = '❌ Veri yüklenemedi.';
-  });
-}
+                // 2. DURUM: Veri varsa, HTML kartlarını oluştur
+                container.classList.remove('hidden');
+                let htmlContent = '';
+                
+                data.forEach(item => {
+                    // Tarih formatlama (Türkçe)
+                    const tarihNesnesi = new Date(item.tarih);
+                    const tarihStr = tarihNesnesi.toLocaleDateString('tr-TR', { 
+                        year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' 
+                    });
 
-function render(items) {
-  markers.forEach(function(m) { map.removeLayer(m); });
-  markers = [];
-  items.forEach(function(item) {
-    if (item.koordinat && item.koordinat.lat) {
-      var icon = L.divIcon({
-        className: 'custom',
-        html: '<div style="font-size:22px;background:#fff;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 5px rgba(0,0,0,0.3);">' + getEmoji(item.tur) + '</div>',
-        iconSize: [36, 36], iconAnchor: [18, 36]
-      });
-      
-      var gorselHtml = '';
-      if (item.gorsel) {
-        var isVideo = /\.(mp4|mov|avi|webm|mkv)$/i.test(item.gorsel) || item.gorsel.indexOf('video') !== -1;
-        gorselHtml = isVideo 
-          ? '<br><a href="'+item.gorsel+'" target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#e31e24;color:#fff;text-decoration:none;border-radius:4px;font-size:0.8rem;">▶️ Video</a>'
-          : '<br><a href="'+item.gorsel+'" target="_blank" style="display:inline-block;margin-top:8px;padding:6px 12px;background:#28a745;color:#fff;text-decoration:none;border-radius:4px;font-size:0.8rem;">📷 Görsel</a>';
-      }
-      
-      var popup = '<div style="min-width:200px;"><b style="color:#e31e24;">' + getEmoji(item.tur) + ' ' + (item.tur || 'İhbar') + '</b><br><br>👤 ' + (item.adSoyad || 'Anonim') + '<br><br>📍 ' + (item.adres || 'Belirtilmemiş') + '<br><br>📝 ' + (item.aciklama || 'Yok') + gorselHtml + '</div>';
-      markers.push(L.marker([item.koordinat.lat, item.koordinat.lng], { icon: icon }).bindPopup(popup).addTo(map));
-    }
-  });
-  document.getElementById('visC').textContent = markers.length;
-}
+                    // Görsel kontrolü (Yoksa veya hata verirse FALLBACK_IMAGE kullan)
+                    const imgUrl = item.gorsel ? item.gorsel : FALLBACK_IMAGE;
 
-function filtre(cat) {
-  render(cat === 'all' ? data : data.filter(function(i) { return getKey(i.tur) === cat; }));
-}
+                    htmlContent += `
+                        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-shadow duration-300 flex flex-col">
+                            <!-- Görsel Alanı (onerror ile siyah ekran önlenir) -->
+                            <div class="relative h-48 bg-gray-200">
+                                <img src="${imgUrl}" 
+                                     onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';" 
+                                     class="w-full h-full object-cover" 
+                                     alt="${item.tur} İhbarı">
+                                <span class="absolute top-3 left-3 bg-brand-red text-white text-xs font-bold px-3 py-1 rounded-full shadow">
+                                    ${item.tur}
+                                </span>
+                            </div>
+                            
+                            <!-- İçerik Alanı -->
+                            <div class="p-5 flex flex-col flex-grow">
+                                <h3 class="text-lg font-bold text-gray-800 mb-2 line-clamp-2" title="${item.adres}">
+                                    ${item.adres}
+                                </h3>
+                                <p class="text-gray-600 text-sm line-clamp-3 mb-4 flex-grow">
+                                    ${item.aciklama}
+                                </p>
+                                
+                                <!-- Alt Bilgiler -->
+                                <div class="pt-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                                    <div class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        <span>${item.adSoyad}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        <span>${tarihStr}</span>
+                                    </div>
+                                </div>
 
-window.addEventListener('load', function() { setTimeout(initMap, 200); });
-window.addEventListener('resize', function() { if (map) setTimeout(function() { map.invalidateSize(true); }, 200); });
-</script>
+                                ${item.haritaLink ? `
+                                <a href="${item.haritaLink}" target="_blank" class="mt-4 w-full text-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg transition flex items-center justify-center gap-2">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                    Haritada Göster
+                                </a>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = htmlContent;
+                console.log(`✅ ${data.length} adet ihbar başarıyla listelendi.`);
+
+            } catch (error) {
+                console.error("❌ VERİ ÇEKME HATASI:", error);
+                spinner.classList.add('hidden');
+                loadingText.classList.add('hidden');
+                errorMsg.classList.remove('hidden');
+            }
+        }
+
+        // Sayfa tamamen yüklendiğinde fonksiyonu çalıştır
+        document.addEventListener('DOMContentLoaded', loadReports);
+    </script>
 </body>
 </html>

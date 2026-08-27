@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Taşköprü Gazetesi Adana İhbar Haritası - Taşköprü Gazetesi</title>
+    <title>Taşköprü Gazetesi Adana İhbar Haritası</title>
     
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- 🆕 Marker Cluster CSS (Üst üste binenleri gruplar) -->
+    <!-- Marker Cluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     
@@ -22,25 +22,40 @@
         .filter-btn:hover, .filter-btn.active { background: #e31e24; color: white; }
         #map { height: calc(100vh - 200px); width: 100%; z-index: 1; }
         .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
+        
+        /* Popup Stilleri */
+        .ihbar-popup { font-size: 0.9rem; }
         .ihbar-popup h3 { color: #e31e24; margin-bottom: 8px; font-size: 1.1rem; }
         .ihbar-popup p { margin-bottom: 6px; font-size: 0.9rem; color: #333; }
         .ihbar-popup .label { font-weight: bold; color: #555; }
-        .ihbar-popup .gorsel-link { display: inline-block; margin-top: 8px; padding: 6px 12px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 0.85rem; text-align: center; width: 100%; }
-        .ihbar-popup .gorsel-link:hover { background: #218838; }
         .ihbar-popup .tarih { font-size: 0.8rem; color: #888; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px; }
-        .stats { display: flex; justify-content: center; gap: 20px; padding: 10px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
-        .stat-item { text-align: center; }
-        .stat-number { font-size: 1.5rem; font-weight: bold; color: #e31e24; }
-        .stat-label { font-size: 0.8rem; color: #666; }
-        .popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; border: 1px solid #eee; }
+        .popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; border: 1px solid #eee; background: #f0f0f0; }
         
-        /* Cluster dairelerinin rengini Taşköprü kırmızısına uyarlayalım */
+        /* Medya Butonları */
+        .media-btn { 
+            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+            margin-top: 4px; padding: 6px 8px; background: #28a745; color: white; 
+            text-decoration: none; border-radius: 4px; font-size: 0.75rem; font-weight: 600; 
+            text-align: center; flex: 1; min-width: 80px; transition: background 0.2s;
+        }
+        .media-btn:hover { background: #218838; color: white; }
+        .media-btn.video { background: #343a40; }
+        .media-btn.video:hover { background: #23272b; }
+        .media-btn.map { background: #007bff; }
+        .media-btn.map:hover { background: #0056b3; }
+
+        /* Cluster Stilleri */
         .marker-cluster-small { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-small div { background-color: rgba(227, 30, 36, 0.6); }
         .marker-cluster-medium { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-medium div { background-color: rgba(227, 30, 36, 0.6); }
         .marker-cluster-large { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-large div { background-color: rgba(227, 30, 36, 0.6); }
+
+        .stats { display: flex; justify-content: center; gap: 20px; padding: 10px; background: white; border-bottom: 1px solid #ddd; flex-wrap: wrap; }
+        .stat-item { text-align: center; }
+        .stat-number { font-size: 1.5rem; font-weight: bold; color: #e31e24; }
+        .stat-label { font-size: 0.8rem; color: #666; }
     </style>
 </head>
 <body>
@@ -78,15 +93,17 @@
 
     <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- 🆕 Marker Cluster JS -->
+    <!-- Marker Cluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     
     <script>
-        const API_URL = "https://script.google.com/macros/s/AKfycbwIp_TfplGwKRwtLwBFABDDgAIlZEpOQil8kcHKcPFA4_yOivFAB_OdoXBO9fk0IRp-/exec";
+        // ⚠️ Buraya en son çalışan ve "Yayınlandı" verisi döndüren API URL'nizi yapıştırın
+        const API_URL = "https://script.google.com/macros/s/AKfycbwIp_TfplGwKRwtLwBFABDDgAIlZEpOQil8kcHKcPFA4_yOivFAB_OdoXBO9fk0IRp-/exec
+";
         const FALLBACK_IMAGE = "https://via.placeholder.com/400x225/e31e24/ffffff?text=TASKOPRU+GAZETESI";
 
         let map;
-        let markersCluster; // 🆕 Artık dizi değil, cluster grubu kullanıyoruz
+        let markersCluster;
         let allData = [];
 
         const kategoriEmojileri = {
@@ -110,6 +127,34 @@
             return '📍';
         }
 
+        // 🆕 Google Drive Thumbnail (Popup için optimize edilmiş)
+        function getDriveThumbUrl(url) {
+            if (!url) return null;
+            const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match) {
+                return `https://lh3.googleusercontent.com/d/${match[1]}=w400`;
+            }
+            return url;
+        }
+
+        // 🆕 Video mu kontrolü
+        function isVideo(url) {
+            if (!url) return false;
+            const lower = url.toLowerCase();
+            return lower.includes('video') || lower.includes('/preview') || /\.(mp4|mov|avi|webm|mkv)$/i.test(lower);
+        }
+
+        // 🆕 Drive Linkini Önizleme Linkine Çevir (Tıklayınca açılması için)
+        function getDrivePreviewUrl(url) {
+            if (!url) return url;
+            const cleanUrl = url.replace(/#video$/i, '');
+            const match = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || cleanUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+            if (match) {
+                return `https://drive.google.com/file/d/${match[1]}/preview`;
+            }
+            return cleanUrl;
+        }
+
         function initMap() {
             map = L.map('map').setView([37.0000, 35.3213], 12);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -117,11 +162,10 @@
                 maxZoom: 19
             }).addTo(map);
             
-            // 🆕 Cluster grubunu başlat ve haritaya ekle
             markersCluster = L.markerClusterGroup({
-                spiderfyOnMaxZoom: true, // En yüksek zoom'da örümcek ağı gibi aç
+                spiderfyOnMaxZoom: true,
                 showCoverageOnHover: false,
-                zoomToBoundsOnClick: true // Tıklayınca o bölgeye zoom yap
+                zoomToBoundsOnClick: true
             });
             map.addLayer(markersCluster);
             
@@ -147,14 +191,13 @@
         }
 
         function renderMarkers(data) {
-            // 🆕 Eski markerları haritadan değil, cluster grubundan temizle
             markersCluster.clearLayers();
 
             data.forEach(item => {
                 const lat = item.koordinat?.lat || 37.0000;
                 const lng = item.koordinat?.lng || 35.3213;
-
                 const iconEmoji = getEmoji(item.tur);
+
                 const customIcon = L.divIcon({
                     className: 'custom-marker',
                     html: `<div style="font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${iconEmoji}</div>`,
@@ -162,52 +205,45 @@
                     iconAnchor: [20, 40]
                 });
 
-                const gorselHtml = item.gorsel 
-                    ? `<img src="${item.gorsel}" onerror="this.onerror=null; this.src='${FALLBACK_IMAGE}';" class="popup-img" alt="İhbar"><a href="${item.gorsel}" target="_blank" class="gorsel-link">📷 Görseli/Videoyu Görüntüle</a>` 
-                    : '';
-                
-                const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR') : 'Belirtilmemiş';
-                const coordsWarning = (!item.koordinat?.lat || !item.koordinat?.lng) ? '<p style="font-size:0.75rem; color:#d97706; margin-top:4px;">⚠️ Konum alınamadı, Adana merkezde gösteriliyor.</p>' : '';
+                // 🆕 MEDYA İŞLEME (Çoklu Görsel/Video)
+                let mediaHtml = '';
+                let mediaButtonsHtml = '';
 
-                const popupContent = `
-                    <div class="ihbar-popup">
-                        <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
-                        <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
-                        <p><span class="label">📝 Açıklama:</span> ${item.aciklama || 'Açıklama yok'}</p>
-                        ${gorselHtml}
-                        ${coordsWarning}
-                        <div class="tarih">🕒 ${tarihFormatli}</div>
-                    </div>
-                `;
+                if (item.gorsel) {
+                    const mediaLinks = item.gorsel.split(',').map(u => u.trim()).filter(u => u.length > 10);
 
-                const marker = L.marker([lat, lng], { icon: customIcon })
-                    .bindPopup(popupContent, { maxWidth: 300 });
-                
-                // 🆅 Marker'ı doğrudan haritaya değil, cluster grubuna ekle
-                markersCluster.addLayer(marker);
-            });
+                    if (mediaLinks.length > 0) {
+                        const firstLink = mediaLinks[0];
+                        const isVid = isVideo(firstLink);
+                        const thumbUrl = getDriveThumbUrl(firstLink);
 
-            document.getElementById('visibleCount').textContent = data.length;
-            
-            // Haritayı tüm markerları gösterecek şekilde otomatik yakınlaştır
-            if (data.length > 0) {
-                map.fitBounds(markersCluster.getBounds().pad(0.1));
-            }
-        }
+                        // İlk medyayı thumbnail olarak göster
+                        if (isVid) {
+                            mediaHtml += `<div style="text-align:center; background:#000; border-radius:4px; margin-bottom:8px; position:relative;">
+                                <div style="font-size:2rem; color:#fff; padding:20px;">🎥 Video</div>
+                            </div>`;
+                        } else if (thumbUrl) {
+                            mediaHtml += `<img src="${thumbUrl}" onerror="this.src='${FALLBACK_IMAGE}'" class="popup-img" alt="İhbar">`;
+                        } else {
+                            mediaHtml += `<img src="${FALLBACK_IMAGE}" class="popup-img" alt="İhbar">`;
+                        }
 
-        function filterMap(tur, btnElement) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
-
-            if (tur === 'tumu') {
-                renderMarkers(allData);
-            } else {
-                const filteredData = allData.filter(item => item.tur === tur);
-                renderMarkers(filteredData);
-            }
-        }
-
-        window.onload = initMap;
-    </script>
-</body>
-</html>
+                        // Tüm medyalar için butonlar oluştur
+                        if (mediaLinks.length > 1 || isVid) {
+                            mediaButtonsHtml += `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">`;
+                            mediaLinks.forEach((link, idx) => {
+                                const isThisVid = isVideo(link);
+                                const label = isThisVid ? '🎥 Video' : `📷 Görsel ${idx + 1}`;
+                                const openLink = getDrivePreviewUrl(link);
+                                const btnClass = isThisVid ? 'media-btn video' : 'media-btn';
+                                
+                                mediaButtonsHtml += `<a href="${openLink}" target="_blank" class="${btnClass}">${label}</a>`;
+                            });
+                            mediaButtonsHtml += `</div>`;
+                        } else {
+                            // Sadece 1 görsel varsa, direkt tıklanabilir link yap
+                            const openLink = getDrivePreviewUrl(firstLink);
+                            mediaButtonsHtml = `<a href="${openLink}" target="_blank" class="media-btn" style="margin-top:8px; width:100%;">📷 Görseli/Videoyu Büyük Gör</a>`;
+                        }
+                    }
+                }

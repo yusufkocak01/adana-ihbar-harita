@@ -238,10 +238,10 @@ function kartOlustur(item) {
     ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' 
     : ' ' + escapeHtml(item.adSoyad);
   
-  // Medya linklerini virgülden ayır
+    // 🆕 Medya linklerini virgül, noktalı virgül VEYA yeni satır ile ayır (Google Forms uyumlu)
   var mediaLinks = [];
   if (item.gorsel) {
-    mediaLinks = item.gorsel.split(',').map(function(u) { return u.trim(); }).filter(function(u) { return u.length > 10; });
+    mediaLinks = item.gorsel.split(/[,;\n]+/).map(function(u) { return u.trim(); }).filter(function(u) { return u.length > 10 && u.includes('http'); });
   }
   
   // 🆕 1. ÜST GÖRSEL ALANI (THUMBNAIL)

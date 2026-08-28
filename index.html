@@ -35,21 +35,36 @@
         .media-btn.map { background: #007bff; }
         .media-btn.map:hover { background: #0056b3; }
 
-        /*  KOPYALANABİLİR İHBAR NO STİLİ - Scroll engellemesi için güncellendi */
-        .copyable-ihbar-no {
-            background: #f3f4f6; padding: 8px; border-radius: 6px; font-family: monospace; 
-            font-weight: bold; font-size: 0.85rem; text-align: center; margin-bottom: 10px; 
-            border: 1px solid #ddd; cursor: pointer; transition: all 0.3s;
+        /* 🆕 İHBAR NO + KOPYALA BUTONU (Harita Popup için) */
+        .ihbar-no-container { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .ihbar-no { 
+            background: #f3f4f6; 
+            color: #374151; 
+            padding: 6px 8px; 
+            border-radius: 4px; 
+            font-size: 0.82rem; 
+            font-family: monospace; 
+            font-weight: bold; 
+            border: 1px solid #ddd;
+            flex: 1;
             user-select: none;
+        }
+        .copy-btn {
+            background: #06d6a0;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.82rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
+            white-space: nowrap;
         }
-        .copyable-ihbar-no:hover { background: #e5e7eb; }
-        .copyable-ihbar-no.copied { 
-            background: #06d6a0 !important; 
-            color: white !important; 
-            border-color: #06d6a0 !important; 
-        }
+        .copy-btn:hover { background: #05b88a; }
+        .copy-btn.copied { background: #e31e24 !important; }
 
         .marker-cluster-small { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-small div { background-color: rgba(227, 30, 36, 0.6); }
@@ -66,7 +81,7 @@
 </head>
 <body>
     <div class="header">
-        <h1>📍 Adana İhbar ve Talep Haritası</h1>
+        <h1> Adana İhbar ve Talep Haritası</h1>
         <p>Vatandaşlarımızdan gelen ihbarların anlık harita görünümü</p>
     </div>
 
@@ -93,9 +108,9 @@
         let activeStatus = 'yayinlandi';
 
         const kategoriEmojileri = {
-            'Çöp-Moloz-Temizlik': '🗑️', 'Yol ve Kaldırım': '️', 'Yeşil Alan-Park-Bahçe Problemleri': '🌳',
+            'Çöp-Moloz-Temizlik': '🗑️', 'Yol ve Kaldırım': '🕳️', 'Yeşil Alan-Park-Bahçe Problemleri': '🌳',
             'Su ve Kanalizasyon': '💧', 'Toplu Taşıma': '🚌', 'Trafik ve Otopark': '🚗',
-            'Yaya Güvenliği': '', 'Gürültü ve Görüntü Kirliliği': '🔊', 'Diğer': '📍'
+            'Yaya Güvenliği': '🚸', 'Gürültü ve Görüntü Kirliliği': '🔊', 'Diğer': '📍'
         };
 
         function getEmoji(tur) {
@@ -228,16 +243,17 @@
                     }
                 }
 
-                let mapLinkHtml = item.haritaLink ? `<a href="${item.haritaLink}" target="_blank" class="media-btn map" style="margin-top:4px; width:100%;">🗺️ Konumu Haritada Aç</a>` : '';
+                let mapLinkHtml = item.haritaLink ? `<a href="${item.haritaLink}" target="_blank" class="media-btn map" style="margin-top:4px; width:100%;">️ Konumu Haritada Aç</a>` : '';
                 const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Belirtilmemiş';
                 const coordsWarning = (!item.koordinat?.lat && !item.koordinat?.lng && !item.haritaLink) ? '<p style="font-size:0.75rem; color:#d97706; margin-top:4px;">⚠️ Konum bilgisi eksik, Adana merkezde gösteriliyor.</p>' : '';
 
-                // 🆕 onclick KALDIRILDI - Event delegation kullanıyoruz
+                // 🆕 İHBAR NO + AYRI KOPYALA BUTONU
                 const popupContent = `
                     <div class="ihbar-popup">
                         <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
-                        <div class="copyable-ihbar-no" data-ihbar="${item.ihbarNo}" title="Kopyalamak için tıklayın">
-                             İhbar No: ${item.ihbarNo}
+                        <div class="ihbar-no-container">
+                            <span class="ihbar-no">📋 ${item.ihbarNo}</span>
+                            <button class="copy-btn" data-ihbar="${item.ihbarNo}">📋 Kopyala</button>
                         </div>
                         <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
                         <p><span class="label">📝 Açıklama:</span> ${item.aciklama || 'Açıklama yok'}</p>
@@ -254,67 +270,62 @@
             });
 
             document.getElementById('visibleCount').textContent = visibleCount;
-            //  fitBounds KALDIRILDI - Harita her zaman Adana'da kalacak
+            // fitBounds KALDIRILDI - Harita her zaman Adana'da kalacak
         }
 
-        // 🆕 KRİTİK DÜZELTME: Event delegation ile kopyalama (iframe scroll sorununu çözer)
+        //  EVENT DELEGATION: Kopyala butonuna tıklamayı yakala (iframe scroll sorununu çözer)
         document.addEventListener('click', function(e) {
-            var target = e.target.closest('.copyable-ihbar-no');
-            if (!target) return;
+            var btn = e.target.closest('.copy-btn');
+            if (!btn) return;
             
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             
-            var text = target.getAttribute('data-ihbar');
+            var text = btn.getAttribute('data-ihbar');
             if (!text) return;
             
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(function() {
-                    showCopiedFeedback(target, text);
-                }).catch(function() {
-                    fallbackCopy(target, text);
-                });
-            } else {
-                fallbackCopy(target, text);
-            }
-            
+            copyToClipboard(text, btn);
             return false;
         }, { passive: false });
 
-        // Touch event'lerini de yakala (mobil için)
         document.addEventListener('touchend', function(e) {
-            var target = e.target.closest('.copyable-ihbar-no');
-            if (!target) return;
+            var btn = e.target.closest('.copy-btn');
+            if (!btn) return;
             
             e.preventDefault();
             e.stopPropagation();
             e.stopImmediatePropagation();
             
-            var text = target.getAttribute('data-ihbar');
+            var text = btn.getAttribute('data-ihbar');
             if (!text) return;
             
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(function() {
-                    showCopiedFeedback(target, text);
-                }).catch(function() {
-                    fallbackCopy(target, text);
-                });
-            } else {
-                fallbackCopy(target, text);
-            }
+            copyToClipboard(text, btn);
         }, { passive: false });
 
-        function showCopiedFeedback(element, originalText) {
-            element.classList.add('copied');
-            element.textContent = '✅ Kopyalandı!';
+        function copyToClipboard(text, btn) {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopiedFeedback(btn);
+                }).catch(function() {
+                    fallbackCopy(text, btn);
+                });
+            } else {
+                fallbackCopy(text, btn);
+            }
+        }
+
+        function showCopiedFeedback(btn) {
+            var originalText = btn.textContent;
+            btn.textContent = '✅ Kopyalandı!';
+            btn.classList.add('copied');
             setTimeout(function() {
-                element.classList.remove('copied');
-                element.textContent = '📋 İhbar No: ' + originalText;
+                btn.textContent = originalText;
+                btn.classList.remove('copied');
             }, 1500);
         }
 
-        function fallbackCopy(element, text) {
+        function fallbackCopy(text, btn) {
             var textArea = document.createElement('textarea');
             textArea.value = text;
             textArea.style.position = 'fixed';
@@ -325,7 +336,7 @@
             textArea.select();
             try {
                 document.execCommand('copy');
-                showCopiedFeedback(element, text);
+                showCopiedFeedback(btn);
             } catch (err) {
                 console.error('Kopyalama başarısız:', err);
             }
@@ -343,10 +354,10 @@
             const box = document.getElementById('filterBox');
             const kategoriler = [
                 {id: 'all', metin: 'Tümü', emoji: '📍'}, {id: 'cop', metin: 'Çöp-Moloz-Temizlik', emoji: '🗑️'},
-                {id: 'yol', metin: 'Yol ve Kaldırım', emoji: '🕳️'}, {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: ''},
-                {id: 'su', metin: 'Su ve Kanalizasyon', emoji: '💧'}, {id: 'toplu', metin: 'Toplu Taşıma', emoji: ''},
+                {id: 'yol', metin: 'Yol ve Kaldırım', emoji: '️'}, {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: '🌳'},
+                {id: 'su', metin: 'Su ve Kanalizasyon', emoji: '💧'}, {id: 'toplu', metin: 'Toplu Taşıma', emoji: '🚌'},
                 {id: 'trafik', metin: 'Trafik ve Otopark', emoji: '🚗'}, {id: 'yaya', metin: 'Yaya Güvenliği', emoji: '🚸'},
-                {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: '🔊'}, {id: 'diger', metin: 'Diğer', emoji: '📍'}
+                {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: ''}, {id: 'diger', metin: 'Diğer', emoji: '📍'}
             ];
 
             kategoriler.forEach((k, i) => {

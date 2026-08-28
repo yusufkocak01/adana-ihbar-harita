@@ -18,7 +18,10 @@
         .filter-btn:hover, .filter-btn.active { background: #e31e24; color: white; }
         .filter-btn.cozuldu-btn { border-color: #06d6a0; color: #06d6a0; }
         .filter-btn.cozuldu-btn:hover, .filter-btn.cozuldu-btn.active { background: #06d6a0; color: white; }
-        #map { height: calc(100vh - 200px); width: 100%; z-index: 1; }
+        
+        /* 🗺️ KRİTİK DÜZELTME: Harita için sabit ve garantili yükseklik */
+        #map { height: 550px; width: 100%; min-height: 400px; z-index: 1; border-radius: 8px; margin-top: 10px; }
+        
         .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
         
         .ihbar-popup { font-size: 0.9rem; }
@@ -151,7 +154,12 @@
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('map').style.display = 'block';
                 document.getElementById('totalCount').textContent = data.length;
-                setTimeout(() => { map.invalidateSize(); }, 100);
+                
+                // 🗺️ Harita görünür olduktan sonra boyutunu yeniden hesapla (iframe için kritik)
+                setTimeout(() => { 
+                    map.invalidateSize(); 
+                }, 300);
+                
                 renderMarkers(allData);
             } catch (error) {
                 console.error("Veri çekme hatası:", error);
@@ -235,7 +243,6 @@
                     cozumBox = `<div class="cozum-box"><div class="cozum-label">✅ ÇÖZÜM AÇIKLAMASI:</div><div class="cozum-text">${escapeHtml(item.belediyeAciklama)}</div></div>`;
                 }
 
-                // BASİT VE GÜVENİLİR YÖNTEM: onclick + return false
                 const popupContent = `
                     <div class="ihbar-popup">
                         <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
@@ -262,7 +269,6 @@
             document.getElementById('visibleCount').textContent = visibleCount;
         }
 
-        // BASİT VE GÜVENİLİR KOPYALAMA FONKSİYONU
         function copyIhbarNoMap(event, text) {
             if (event) {
                 event.preventDefault();
@@ -282,7 +288,7 @@
                     }
                 });
             }
-            return false; // Zıplamayı kesin olarak engeller
+            return false;
         }
 
         function getKategoriKey(tur) {
@@ -332,7 +338,5 @@
 
         window.onload = function() { initFilters(); initMap(); };
     </script>
-    
- 
 </body>
 </html>

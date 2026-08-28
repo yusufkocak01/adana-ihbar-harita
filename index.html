@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #f4f6f9; }
+        body { background-color: #f4f6f9; overscroll-behavior: contain; }
         .header { background: #e31e24; color: white; padding: 20px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .header h1 { font-size: 1.5rem; margin-bottom: 5px; }
         .header p { font-size: 0.9rem; opacity: 0.9; }
@@ -35,20 +35,21 @@
         .media-btn.map { background: #007bff; }
         .media-btn.map:hover { background: #0056b3; }
 
-        /*  KOPYALANABİLİR İHBAR NO STİLİ */
-     .copyable-ihbar-no {
-    background: #f3f4f6; padding: 8px; border-radius: 6px; font-family: monospace; 
-    font-weight: bold; font-size: 0.85rem; text-align: center; margin-bottom: 10px; 
-    border: 1px solid #ddd; cursor: pointer; transition: all 0.3s; user-select: none;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-}
-.copyable-ihbar-no:hover { background: #e5e7eb; }
-.copyable-ihbar-no.copied { 
-    background: #06d6a0 !important; 
-    color: white !important; 
-    border-color: #06d6a0 !important; 
-}
+        /*  KOPYALANABİLİR İHBAR NO STİLİ - Scroll engellemesi için güncellendi */
+        .copyable-ihbar-no {
+            background: #f3f4f6; padding: 8px; border-radius: 6px; font-family: monospace; 
+            font-weight: bold; font-size: 0.85rem; text-align: center; margin-bottom: 10px; 
+            border: 1px solid #ddd; cursor: pointer; transition: all 0.3s;
+            user-select: none;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .copyable-ihbar-no:hover { background: #e5e7eb; }
+        .copyable-ihbar-no.copied { 
+            background: #06d6a0 !important; 
+            color: white !important; 
+            border-color: #06d6a0 !important; 
+        }
 
         .marker-cluster-small { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-small div { background-color: rgba(227, 30, 36, 0.6); }
@@ -84,19 +85,21 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbwG8fc5q6ol2veNpdPhhs__LHN3XpYo75soWnhZUkzY9ncox4US5GuQzbhITkbVLKdP/exec";
         const FALLBACK_IMAGE = "https://via.placeholder.com/400x225/e31e24/ffffff?text=TASKOPRU+GAZETESI";
+        const ADANA_CENTER = [37.0000, 35.3213];
+        const ADANA_ZOOM = 12;
 
         let map, markersCluster, allData = [];
         let activeFilter = 'all';
         let activeStatus = 'yayinlandi';
 
         const kategoriEmojileri = {
-            'Çöp-Moloz-Temizlik': '🗑️', 'Yol ve Kaldırım': '🕳️', 'Yeşil Alan-Park-Bahçe Problemleri': '🌳',
+            'Çöp-Moloz-Temizlik': '🗑️', 'Yol ve Kaldırım': '️', 'Yeşil Alan-Park-Bahçe Problemleri': '🌳',
             'Su ve Kanalizasyon': '💧', 'Toplu Taşıma': '🚌', 'Trafik ve Otopark': '🚗',
-            'Yaya Güvenliği': '🚸', 'Gürültü ve Görüntü Kirliliği': '🔊', 'Diğer': ''
+            'Yaya Güvenliği': '', 'Gürültü ve Görüntü Kirliliği': '🔊', 'Diğer': '📍'
         };
 
         function getEmoji(tur) {
-            if (!tur) return '';
+            if (!tur) return '📍';
             if (kategoriEmojileri[tur]) return kategoriEmojileri[tur];
             for (const [key, emoji] of Object.entries(kategoriEmojileri)) {
                 if (tur.includes(key) || key.includes(tur)) return emoji;
@@ -109,6 +112,8 @@
             let match = mapLink.match(/[?&]q=(-?\d+\.\d+)[,+](-?\d+\.\d+)/);
             if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
             match = mapLink.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+            if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
+            match = mapLink.match(/!3d(-?\d+\.\d+).*?!4d(-?\d+\.\d+)/);
             if (match) return { lat: parseFloat(match[1]), lng: parseFloat(match[2]) };
             return null;
         }
@@ -135,7 +140,7 @@
         }
 
         function initMap() {
-            map = L.map('map').setView([37.0000, 35.3213], 12);
+            map = L.map('map').setView(ADANA_CENTER, ADANA_ZOOM);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 attribution: '© OpenStreetMap contributors | Taşköprü Gazetesi', maxZoom: 19
             }).addTo(map);
@@ -183,8 +188,8 @@
                     }
                 }
 
-                lat = lat || 37.0000;
-                lng = lng || 35.3213;
+                lat = lat || ADANA_CENTER[0];
+                lng = lng || ADANA_CENTER[1];
 
                 const iconEmoji = getEmoji(item.tur);
                 const markerColor = item.durum === 'çözüldü' ? 'green' : 'red';
@@ -203,7 +208,7 @@
                         const isVid = isVideo(firstLink);
                         const thumbUrl = getDriveThumbUrl(firstLink);
 
-                        if (isVid) mediaHtml += `<div style="text-align:center; background:#000; border-radius:4px; margin-bottom:8px;"><div style="font-size:2rem; color:#fff; padding:20px;"> Video</div></div>`;
+                        if (isVid) mediaHtml += `<div style="text-align:center; background:#000; border-radius:4px; margin-bottom:8px;"><div style="font-size:2rem; color:#fff; padding:20px;">🎥 Video</div></div>`;
                         else if (thumbUrl) mediaHtml += `<img src="${thumbUrl}" onerror="this.src='${FALLBACK_IMAGE}'" class="popup-img" alt="İhbar">`;
                         else mediaHtml += `<img src="${FALLBACK_IMAGE}" class="popup-img" alt="İhbar">`;
 
@@ -211,7 +216,7 @@
                             mediaButtonsHtml += `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">`;
                             mediaLinks.forEach((link, idx) => {
                                 const isThisVid = isVideo(link);
-                                const label = isThisVid ? '🎥 Video' : ` Görsel ${idx + 1}`;
+                                const label = isThisVid ? '🎥 Video' : `📷 Görsel ${idx + 1}`;
                                 const openLink = getDrivePreviewUrl(link);
                                 const btnClass = isThisVid ? 'media-btn video' : 'media-btn';
                                 mediaButtonsHtml += `<a href="${openLink}" target="_blank" class="${btnClass}">${label}</a>`;
@@ -227,11 +232,11 @@
                 const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Belirtilmemiş';
                 const coordsWarning = (!item.koordinat?.lat && !item.koordinat?.lng && !item.haritaLink) ? '<p style="font-size:0.75rem; color:#d97706; margin-top:4px;">⚠️ Konum bilgisi eksik, Adana merkezde gösteriliyor.</p>' : '';
 
-                // 🆕 data-ihbar attribute ile güvenli kopyalama
+                // 🆕 onclick KALDIRILDI - Event delegation kullanıyoruz
                 const popupContent = `
                     <div class="ihbar-popup">
                         <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
-                        <div class="copyable-ihbar-no" data-ihbar="${item.ihbarNo}" onclick="copyIhbarNoInMap(this)" title="Kopyalamak için tıklayın">
+                        <div class="copyable-ihbar-no" data-ihbar="${item.ihbarNo}" title="Kopyalamak için tıklayın">
                              İhbar No: ${item.ihbarNo}
                         </div>
                         <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
@@ -249,29 +254,57 @@
             });
 
             document.getElementById('visibleCount').textContent = visibleCount;
-            if (visibleCount > 0) {
-                map.fitBounds(markersCluster.getBounds().pad(0.1));
-            }
+            //  fitBounds KALDIRILDI - Harita her zaman Adana'da kalacak
         }
 
-        // 🆕 GÜVENİLİR KOPYALAMA FONKSİYONU
-        function copyIhbarNoInMap(element) {
-            var text = element.getAttribute('data-ihbar');
+        // 🆕 KRİTİK DÜZELTME: Event delegation ile kopyalama (iframe scroll sorununu çözer)
+        document.addEventListener('click', function(e) {
+            var target = e.target.closest('.copyable-ihbar-no');
+            if (!target) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            var text = target.getAttribute('data-ihbar');
             if (!text) return;
             
-            // Clipboard API kullan
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(text).then(function() {
-                    showCopiedFeedback(element, text);
+                    showCopiedFeedback(target, text);
                 }).catch(function() {
-                    fallbackCopy(element, text);
+                    fallbackCopy(target, text);
                 });
             } else {
-                fallbackCopy(element, text);
+                fallbackCopy(target, text);
             }
-        }
+            
+            return false;
+        }, { passive: false });
 
-        // Görsel geri bildirim
+        // Touch event'lerini de yakala (mobil için)
+        document.addEventListener('touchend', function(e) {
+            var target = e.target.closest('.copyable-ihbar-no');
+            if (!target) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            e.stopImmediatePropagation();
+            
+            var text = target.getAttribute('data-ihbar');
+            if (!text) return;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(text).then(function() {
+                    showCopiedFeedback(target, text);
+                }).catch(function() {
+                    fallbackCopy(target, text);
+                });
+            } else {
+                fallbackCopy(target, text);
+            }
+        }, { passive: false });
+
         function showCopiedFeedback(element, originalText) {
             element.classList.add('copied');
             element.textContent = '✅ Kopyalandı!';
@@ -281,7 +314,6 @@
             }, 1500);
         }
 
-        // Eski tarayıcılar için fallback
         function fallbackCopy(element, text) {
             var textArea = document.createElement('textarea');
             textArea.value = text;
@@ -310,10 +342,10 @@
         function initFilters() {
             const box = document.getElementById('filterBox');
             const kategoriler = [
-                {id: 'all', metin: 'Tümü', emoji: ''}, {id: 'cop', metin: 'Çöp-Moloz-Temizlik', emoji: '🗑️'},
-                {id: 'yol', metin: 'Yol ve Kaldırım', emoji: '🕳️'}, {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: '🌳'},
-                {id: 'su', metin: 'Su ve Kanalizasyon', emoji: '💧'}, {id: 'toplu', metin: 'Toplu Taşıma', emoji: '🚌'},
-                {id: 'trafik', metin: 'Trafik ve Otopark', emoji: '🚗'}, {id: 'yaya', metin: 'Yaya Güvenliği', emoji: ''},
+                {id: 'all', metin: 'Tümü', emoji: '📍'}, {id: 'cop', metin: 'Çöp-Moloz-Temizlik', emoji: '🗑️'},
+                {id: 'yol', metin: 'Yol ve Kaldırım', emoji: '🕳️'}, {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: ''},
+                {id: 'su', metin: 'Su ve Kanalizasyon', emoji: '💧'}, {id: 'toplu', metin: 'Toplu Taşıma', emoji: ''},
+                {id: 'trafik', metin: 'Trafik ve Otopark', emoji: '🚗'}, {id: 'yaya', metin: 'Yaya Güvenliği', emoji: '🚸'},
                 {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: '🔊'}, {id: 'diger', metin: 'Diğer', emoji: '📍'}
             ];
 

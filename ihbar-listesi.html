@@ -294,35 +294,36 @@ function init() {
 }
 window.addEventListener('load', function() { setTimeout(init, 100); });
 </script>
-<!-- 📏 IFRAME YÜKSEKLİĞİNİ OTOMATİK AYARLAYAN SCRIPT -->
+<!-- 📏 GÜVENLİ IFRAME YÜKSEKLİK AYARLAYICI (Sonsuz Döngü Korumalı) -->
 <script>
+let sonYukseklik = 0;
+
 function updateIframeHeight() {
-  const height = Math.max(
+  // Sayfanın gerçek toplam yüksekliğini al
+  const mevcutYukseklik = Math.max(
     document.body.scrollHeight,
-    document.body.offsetHeight,
-    document.documentElement.scrollHeight,
-    document.documentElement.offsetHeight
+    document.documentElement.scrollHeight
   );
   
-  // Parent sayfaya yüksekliği gönder
-  window.parent.postMessage({
-    type: 'SET_HEIGHT',
-    height: height + 20 // 20px alt boşluk ekle
-  }, '*');
+  // Sadece yükseklik 50 pikselden fazla değiştiyse haber ver (Döngüyü kırar!)
+  if (Math.abs(mevcutYukseklik - sonYukseklik) > 50) {
+    sonYukseklik = mevcutYukseklik;
+    window.parent.postMessage({ 
+      type: 'SET_HEIGHT', 
+      height: mevcutYukseklik + 50 // Alttan 50px boşluk
+    }, '*');
+  }
 }
 
-// Sayfa yüklendiğinde ve her değiştiğinde yüksekliği güncelle
+// Sadece sayfa yüklendiğinde ve pencere boyutu değiştiğinde tetikle
 window.addEventListener('load', updateIframeHeight);
 window.addEventListener('resize', updateIframeHeight);
 
-// İçerik değiştiğinde de tetikle (örn: filtreleme, arama, yeni veri)
-const observer = new MutationObserver(updateIframeHeight);
-observer.observe(document.body, { 
-  childList: true, 
-  subtree: true,
-  attributes: true 
-});
+// Not: MutationObserver kaldırıldı, çünkü parent'ın height değiştirmesi içeride yanlış resize tetikliyordu.
 </script>
+
+</body>
+</html>
 
 </body>
 </html>

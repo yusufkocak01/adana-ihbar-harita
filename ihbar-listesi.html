@@ -1,3 +1,5 @@
+  
+
   <!DOCTYPE html>
 <html lang="tr">
 <head>
@@ -79,7 +81,7 @@ body { background: #f4f6f9; padding: 10px; }
 <body>
 <div class="container">
   <div class="header">
-    <h2> Adana İhbar ve Talep Listesi</h2>
+    <h2>📋 Adana İhbar ve Talep Listesi</h2>
     <p>Vatandaşlarımızdan gelen ihbarların detaylı listesi</p>
   </div>
   <div class="stats">
@@ -165,44 +167,35 @@ function butonlariOlustur() {
   var box = document.getElementById('filterBox');
   box.innerHTML = '';
   
-  //  Durum Filtreleri (Yayınlandı / Çözüldü)
-  var statusContainer = document.createElement('div');
-  statusContainer.style.cssText = 'display:flex; gap:8px; margin-right:12px; padding-right:12px; border-right:2px solid #eee;';
-  
-  var yayinlandiBtn = document.createElement('button');
-  yayinlandiBtn.className = 'filter-btn active';
-  yayinlandiBtn.textContent = '📢 Yayınlananlar';
-  yayinlandiBtn.onclick = function() {
-    activeStatus = 'yayinlandi';
-    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
-    this.classList.add('active');
-    uygulaFiltre();
-  };
-  statusContainer.appendChild(yayinlandiBtn);
-  
+  // ✅ Çözülen Sorunlar Butonu (Ayrı sekme gibi)
   var cozulduBtn = document.createElement('button');
-  cozulduBtn.className = 'filter-btn cozuldu-btn status-btn';
-  cozulduBtn.textContent = '✅ Çözüldü';
+  cozulduBtn.className = 'filter-btn cozuldu-btn';
+  cozulduBtn.textContent = '✅ Çözülen Sorunlar';
   cozulduBtn.onclick = function() {
     activeStatus = 'cozuldu';
-    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    // Tüm kategori butonlarını pasif yap
+    document.querySelectorAll('.kategori-btn').forEach(function(b) { b.classList.remove('active'); });
+    // Çözülen sorunlar butonunu aktif yap
     this.classList.add('active');
     uygulaFiltre();
   };
-  statusContainer.appendChild(cozulduBtn);
-  
-  box.appendChild(statusContainer);
+  box.appendChild(cozulduBtn);
   
   // Kategori Filtreleri
   for (var i = 0; i < kategoriler.length; i++) {
     var k = kategoriler[i];
     var btn = document.createElement('button');
-    btn.className = 'filter-btn' + (i === 0 ? ' active' : '');
+    btn.className = 'filter-btn kategori-btn' + (i === 0 ? ' active' : '');
     btn.setAttribute('data-id', k.id);
     btn.textContent = k.emoji + ' ' + k.metin;
     btn.onclick = function() {
-      document.querySelectorAll('.filter-btn:not(.status-btn)').forEach(function(b) { b.classList.remove('active'); });
+      // Sadece kategori butonları arasında aktif/pasif yap
+      document.querySelectorAll('.kategori-btn').forEach(function(b) { b.classList.remove('active'); });
       this.classList.add('active');
+      // Çözülen sorunlar butonunu pasif yap
+      document.querySelectorAll('.cozuldu-btn').forEach(function(b) { b.classList.remove('active'); });
+      // Durumu yayınlananlara çevir
+      activeStatus = 'yayinlandi';
       activeFilter = this.getAttribute('data-id');
       uygulaFiltre();
     };
@@ -227,7 +220,7 @@ function kartOlustur(item) {
     ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' 
     : ' ' + escapeHtml(item.adSoyad);
   
-  // 🆕 Çözüldü Badge
+  // Çözüldü Badge
   var statusBadge = item.durum === 'çözüldü' 
     ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' 
     : '<span class="card-tur">' + emoji + ' ' + escapeHtml(item.tur || 'Genel İhbar') + '</span>';
@@ -262,7 +255,7 @@ function kartOlustur(item) {
     mediaLinks.forEach(function(link, index) {
       var isVid = link.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(link);
       var btnClass = isVid ? 'media-btn video' : 'media-btn';
-      var icon = isVid ? '🎥' : '📷';
+      var icon = isVid ? '🎥' : '';
       var label = isVid ? 'Video' : ('Görsel ' + (index + 1));
       var safeLink = escapeAttr(link);
       mediaButtonsHtml += '<button class="' + btnClass + '" onclick="openLightbox(\'' + safeLink + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
@@ -271,10 +264,10 @@ function kartOlustur(item) {
   }
   
   var haritaLinkHtml = item.haritaLink 
-    ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">️ Harita</a>' 
+    ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' 
     : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  // 🆕 İhbar No (Kopyalayabilir)
+  // İhbar No (Kopyalayabilir)
   var ihbarNoHtml = '<span class="ihbar-no" title="Kopyalamak için tıklayın" onclick="copyIhbarNo(this, \'' + escapeAttr(item.ihbarNo) + '\')">#' + escapeHtml(item.ihbarNo) + '</span>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
@@ -284,7 +277,7 @@ function kartOlustur(item) {
     '<div class="card-body">' +
       statusBadge +
       '<div class="card-ad">' + adHtml + '</div>' +
-      '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
+      '<div class="card-adres"> ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
       '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
       mediaButtonsHtml +
       '<div class="card-footer">' +
@@ -305,7 +298,6 @@ function copyIhbarNo(element, text) {
       element.textContent = '#' + text;
     }, 1500);
   }).catch(function() {
-    // Fallback
     var textArea = document.createElement('textarea');
     textArea.value = text;
     document.body.appendChild(textArea);
@@ -329,12 +321,14 @@ function escapeAttr(str) {
 
 function uygulaFiltre() {
   filteredData = allData.filter(function(item) {
-    //  Durum filtresi
+    // Durum filtresi
     if (activeStatus === 'cozuldu' && item.durum !== 'çözüldü') return false;
     if (activeStatus === 'yayinlandi' && item.durum !== 'yayınlandı') return false;
     
+    // Kategori filtresi
     var kategoriEslesme = (activeFilter === 'all') || (getKategoriKey(item.tur) === activeFilter);
     
+    // Arama filtresi
     var aramaEslesme = true;
     if (searchQuery) {
       var q = searchQuery.toLowerCase();

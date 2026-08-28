@@ -1,6 +1,4 @@
-  
-
-  <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -89,7 +87,7 @@ body { background: #f4f6f9; padding: 10px; }
     <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
   </div>
   <div class="controls">
-    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres, açıklama veya ihbar no ara...">
+    <input type="text" class="search-box" id="searchBox" placeholder=" Adres, açıklama veya ihbar no ara...">
   </div>
   <div class="controls" id="filterBox"></div>
   <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
@@ -103,11 +101,12 @@ body { background: #f4f6f9; padding: 10px; }
 </div>
 
 <script>
+// ⚠️ BURAYA GÜNCEL API URL'NİZİ YAZIN
 var API_URL = "https://script.google.com/macros/s/AKfycbwIp_TfplGwKRwtLwBFABDDgAIlZEpOQil8kcHKcPFA4_yOivFAB_OdoXBO9fk0IRp-/exec";
 var allData = [];
 var filteredData = [];
 var activeFilter = 'all';
-var activeStatus = 'yayinlandi'; // 'yayinlandi' veya 'cozuldu'
+var activeStatus = 'yayinlandi';
 var searchQuery = '';
 
 var kategoriler = [
@@ -167,21 +166,7 @@ function butonlariOlustur() {
   var box = document.getElementById('filterBox');
   box.innerHTML = '';
   
-  // ✅ Çözülen Sorunlar Butonu (Ayrı sekme gibi)
-  var cozulduBtn = document.createElement('button');
-  cozulduBtn.className = 'filter-btn cozuldu-btn';
-  cozulduBtn.textContent = '✅ Çözülen Sorunlar';
-  cozulduBtn.onclick = function() {
-    activeStatus = 'cozuldu';
-    // Tüm kategori butonlarını pasif yap
-    document.querySelectorAll('.kategori-btn').forEach(function(b) { b.classList.remove('active'); });
-    // Çözülen sorunlar butonunu aktif yap
-    this.classList.add('active');
-    uygulaFiltre();
-  };
-  box.appendChild(cozulduBtn);
-  
-  // Kategori Filtreleri
+  // Önce kategori butonları
   for (var i = 0; i < kategoriler.length; i++) {
     var k = kategoriler[i];
     var btn = document.createElement('button');
@@ -189,18 +174,27 @@ function butonlariOlustur() {
     btn.setAttribute('data-id', k.id);
     btn.textContent = k.emoji + ' ' + k.metin;
     btn.onclick = function() {
-      // Sadece kategori butonları arasında aktif/pasif yap
       document.querySelectorAll('.kategori-btn').forEach(function(b) { b.classList.remove('active'); });
       this.classList.add('active');
-      // Çözülen sorunlar butonunu pasif yap
       document.querySelectorAll('.cozuldu-btn').forEach(function(b) { b.classList.remove('active'); });
-      // Durumu yayınlananlara çevir
       activeStatus = 'yayinlandi';
       activeFilter = this.getAttribute('data-id');
       uygulaFiltre();
     };
     box.appendChild(btn);
   }
+  
+  // En sonda Çözülen Sorunlar butonu
+  var cozulduBtn = document.createElement('button');
+  cozulduBtn.className = 'filter-btn cozuldu-btn';
+  cozulduBtn.textContent = '✅ Çözülen Sorunlar';
+  cozulduBtn.onclick = function() {
+    activeStatus = 'cozuldu';
+    document.querySelectorAll('.kategori-btn').forEach(function(b) { b.classList.remove('active'); });
+    this.classList.add('active');
+    uygulaFiltre();
+  };
+  box.appendChild(cozulduBtn);
 }
 
 function tarihFormatla(tarihStr) {
@@ -220,7 +214,6 @@ function kartOlustur(item) {
     ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' 
     : ' ' + escapeHtml(item.adSoyad);
   
-  // Çözüldü Badge
   var statusBadge = item.durum === 'çözüldü' 
     ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' 
     : '<span class="card-tur">' + emoji + ' ' + escapeHtml(item.tur || 'Genel İhbar') + '</span>';
@@ -255,7 +248,7 @@ function kartOlustur(item) {
     mediaLinks.forEach(function(link, index) {
       var isVid = link.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(link);
       var btnClass = isVid ? 'media-btn video' : 'media-btn';
-      var icon = isVid ? '🎥' : '';
+      var icon = isVid ? '🎥' : '📷';
       var label = isVid ? 'Video' : ('Görsel ' + (index + 1));
       var safeLink = escapeAttr(link);
       mediaButtonsHtml += '<button class="' + btnClass + '" onclick="openLightbox(\'' + safeLink + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
@@ -267,7 +260,6 @@ function kartOlustur(item) {
     ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' 
     : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  // İhbar No (Kopyalayabilir)
   var ihbarNoHtml = '<span class="ihbar-no" title="Kopyalamak için tıklayın" onclick="copyIhbarNo(this, \'' + escapeAttr(item.ihbarNo) + '\')">#' + escapeHtml(item.ihbarNo) + '</span>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
@@ -277,11 +269,11 @@ function kartOlustur(item) {
     '<div class="card-body">' +
       statusBadge +
       '<div class="card-ad">' + adHtml + '</div>' +
-      '<div class="card-adres"> ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
+      '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
       '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
       mediaButtonsHtml +
       '<div class="card-footer">' +
-        '<span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
+        '<span> ' + tarihFormatla(item.tarih) + '</span>' +
         ihbarNoHtml +
         haritaLinkHtml +
       '</div>' +
@@ -321,14 +313,11 @@ function escapeAttr(str) {
 
 function uygulaFiltre() {
   filteredData = allData.filter(function(item) {
-    // Durum filtresi
     if (activeStatus === 'cozuldu' && item.durum !== 'çözüldü') return false;
     if (activeStatus === 'yayinlandi' && item.durum !== 'yayınlandı') return false;
     
-    // Kategori filtresi
     var kategoriEslesme = (activeFilter === 'all') || (getKategoriKey(item.tur) === activeFilter);
     
-    // Arama filtresi
     var aramaEslesme = true;
     if (searchQuery) {
       var q = searchQuery.toLowerCase();
@@ -390,9 +379,14 @@ document.addEventListener('keydown', function(e) {
 
 function init() {
   butonlariOlustur();
+  console.log('API URL:', API_URL);
   fetch(API_URL)
-    .then(function(r) { return r.json(); })
+    .then(function(r) { 
+      console.log('Response status:', r.status);
+      return r.json(); 
+    })
     .then(function(data) {
+      console.log('Gelen veri:', data);
       allData = data;
       document.getElementById('totalCount').textContent = data.length;
       document.getElementById('loading').style.display = 'none';
@@ -400,9 +394,10 @@ function init() {
       uygulaFiltre();
     })
     .catch(function(e) {
+      console.error('Hata:', e);
       document.getElementById('loading').style.display = 'none';
       document.getElementById('error').style.display = 'block';
-      document.getElementById('error').textContent = '❌ İhbarlar yüklenirken hata oluştu. Lütfen sayfayı yenileyin.';
+      document.getElementById('error').textContent = '❌ İhbarlar yüklenirken hata oluştu: ' + e.message;
     });
 }
 

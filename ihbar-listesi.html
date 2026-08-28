@@ -6,7 +6,7 @@
 <title>Adana İhbar Listesi - Taşköprü Gazetesi</title>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Arial, sans-serif; }
-body { background: #f4f6f9; padding: 10px; }
+body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 .container { max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.08); }
 .header { background: #e31e24; color: #fff; padding: 20px; text-align: center; }
 .header h2 { font-size: 1.3rem; margin-bottom: 5px; }
@@ -47,7 +47,7 @@ body { background: #f4f6f9; padding: 10px; }
 .card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
 .card-footer a:hover { text-decoration: underline; }
 
-/* 🆕 KOPYALANABİLİR İHBAR NO STİLİ - Scroll sorunu için güncellendi */
+/* 🆕 İHBAR NO - Scroll engellemesi için güncellendi */
 .ihbar-no { 
   background: #f3f4f6; 
   color: #374151; 
@@ -60,7 +60,9 @@ body { background: #f4f6f9; padding: 10px; }
   transition: all 0.3s; 
   border: 1px solid #e5e7eb;
   display: inline-block;
-  user-select: none; /* user-select: all kaldırıldı, scroll sorununu çözer */
+  user-select: none;
+  touch-action: manipulation; /* 🎯 Touch scroll'u engeller */
+  -webkit-tap-highlight-color: transparent; /* Mobilde tıklama vurgusunu kaldırır */
 }
 .ihbar-no:hover { background: #e5e7eb; }
 .ihbar-no.copied { background: #06d6a0 !important; color: #fff !important; border-color: #06d6a0 !important; }
@@ -90,7 +92,7 @@ body { background: #f4f6f9; padding: 10px; }
     <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
   </div>
   <div class="controls">
-    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres, açıklama veya ihbar no ara...">
+    <input type="text" class="search-box" id="searchBox" placeholder=" Adres, açıklama veya ihbar no ara...">
   </div>
   <div class="controls" id="filterBox"></div>
   <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
@@ -199,7 +201,7 @@ function kartOlustur(item) {
     if (driveMatch && !isVideo) thumbSrc = 'https://lh3.googleusercontent.com/d/' + driveMatch[1] + '=w600';
 
     if (isVideo) thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
-    else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image></div>\'"></div>';
+    else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
   } else {
     thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
   }
@@ -217,10 +219,10 @@ function kartOlustur(item) {
     mediaButtonsHtml += '</div>';
   }
   
-  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span> ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
+  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  //  DÜZELTME: onclick'e event parametresi eklendi
-  var ihbarNoHtml = '<span class="ihbar-no" data-ihbar="' + escapeAttr(item.ihbarNo) + '" onclick="copyIhbarNo(event, this)" title="Kopyalamak için tıklayın">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
+  //  DÜZELTME: onclick yerine data attribute kullanacağız, event listener ile yakalayacağız
+  var ihbarNoHtml = '<span class="ihbar-no" data-ihbar="' + escapeAttr(item.ihbarNo) + '" title="Kopyalamak için tıklayın">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
 
@@ -232,33 +234,56 @@ function kartOlustur(item) {
     ihbarNoHtml + haritaLinkHtml + '</div></div></div>';
 }
 
-//  DÜZELTME: Scroll sorununu çözen kopyalama fonksiyonu
-function copyIhbarNo(event, element) {
-  // 🎯 KRİTİK: Scroll'u ve varsayılan davranışı engelle
-  if (event) {
-    event.preventDefault();
-    event.stopPropagation();
-  }
+//  KRİTİK DÜZELTME: Event delegation ile kopyalama (iframe scroll sorununu çözer)
+document.addEventListener('click', function(e) {
+  var target = e.target.closest('.ihbar-no');
+  if (!target) return;
   
-  var text = element.getAttribute('data-ihbar');
+  // Tüm varsayılan davranışları engelle
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  
+  var text = target.getAttribute('data-ihbar');
   if (!text) return;
   
   // Clipboard API kullan
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function() {
-      showCopiedFeedback(element, text);
+      showCopiedFeedback(target, text);
     }).catch(function() {
-      fallbackCopy(element, text);
+      fallbackCopy(target, text);
     });
   } else {
-    fallbackCopy(element, text);
+    fallbackCopy(target, text);
   }
   
-  //  Ekstra güvenlik: return false
   return false;
-}
+}, { passive: false }); // passive: false, preventDefault'in çalışmasını garanti eder
 
-// Görsel geri bildirim
+// Touch event'lerini de yakala (mobil için)
+document.addEventListener('touchend', function(e) {
+  var target = e.target.closest('.ihbar-no');
+  if (!target) return;
+  
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  
+  var text = target.getAttribute('data-ihbar');
+  if (!text) return;
+  
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopiedFeedback(target, text);
+    }).catch(function() {
+      fallbackCopy(target, text);
+    });
+  } else {
+    fallbackCopy(target, text);
+  }
+}, { passive: false });
+
 function showCopiedFeedback(element, originalText) {
   element.classList.add('copied');
   element.textContent = '✅ Kopyalandı!';
@@ -268,7 +293,6 @@ function showCopiedFeedback(element, originalText) {
   }, 1500);
 }
 
-// Eski tarayıcılar için fallback
 function fallbackCopy(element, text) {
   var textArea = document.createElement('textarea');
   textArea.value = text;
@@ -343,7 +367,7 @@ function init() {
   }).catch(function(e) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error').style.display = 'block';
-    document.getElementById('error').textContent = ' Veri yüklenirken hata: ' + e.message;
+    document.getElementById('error').textContent = '❌ Veri yüklenirken hata: ' + e.message;
   });
 }
 window.addEventListener('load', function() { setTimeout(init, 100); });

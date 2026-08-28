@@ -35,7 +35,7 @@
         .media-btn.map { background: #007bff; }
         .media-btn.map:hover { background: #0056b3; }
 
-        /* 🆕 Kopyalanabilir İhbar No Stili */
+        /* Tıklayınca Kopyalanabilen İhbar No Kutusu */
         .copyable-ihbar-no {
             background: #f3f4f6; padding: 8px; border-radius: 6px; font-family: monospace; 
             font-weight: bold; font-size: 0.85rem; text-align: center; margin-bottom: 10px; 
@@ -69,7 +69,6 @@
     </div>
 
     <div class="filters" id="filterBox"></div>
-
     <div id="loading" class="loading">⏳ Harita verileri yükleniyor, lütfen bekleyin...</div>
     <div id="map" style="display: none;"></div>
 
@@ -99,7 +98,7 @@
             return '📍';
         }
 
-        // 🆕 YENİ: Google Harita Linkinden Enlem/Boylam Çıkarma Fonksiyonu
+        // 🆕 HARİTA LİNKİNDEN KOORDİNAT ÇIKARMA
         function extractCoordsFromMapLink(mapLink) {
             if (!mapLink) return null;
             // Format 1: ?q=37.0000,35.0000 veya ?q=37.0000+35.0000
@@ -142,7 +141,6 @@
             
             markersCluster = L.markerClusterGroup({ spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true });
             map.addLayer(markersCluster);
-            
             fetchData();
         }
 
@@ -158,7 +156,7 @@
                 renderMarkers(allData);
             } catch (error) {
                 console.error("Veri çekme hatası:", error);
-                document.getElementById('loading').innerHTML = "❌ Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.";
+                document.getElementById('loading').innerHTML = "❌ Veriler yüklenirken hata oluştu. Lütfen sayfayı yenileyin.";
             }
         }
 
@@ -173,7 +171,7 @@
 
                 visibleCount++;
                 
-                // 🆕 KONUM MANTIĞI: Önce Sheets koordinatlarına bak, yoksa Harita Linkinden çek
+                // 🆕 KONUM MANTIĞI: Önce Enlem/Boylam sütunlarına bak, boşsa Harita Linkinden çek
                 let lat = item.koordinat?.lat;
                 let lng = item.koordinat?.lng;
 
@@ -230,7 +228,6 @@
                 const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Belirtilmemiş';
                 const coordsWarning = (!item.koordinat?.lat && !item.koordinat?.lng && !item.haritaLink) ? '<p style="font-size:0.75rem; color:#d97706; margin-top:4px;">⚠️ Konum bilgisi eksik, Adana merkezde gösteriliyor.</p>' : '';
 
-                // 🆕 TIKLAYINCA KOPYALANAN İHBAR NO
                 const popupContent = `
                     <div class="ihbar-popup">
                         <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
@@ -259,7 +256,7 @@
             }
         }
 
-        // 🆕 Harita Popup'ı İçin Kopyalama Fonksiyonu
+        // 🆕 HARİTA POPUP İÇİN KOPYALAMA FONKSİYONU
         function copyIhbarNoInMap(element, text) {
             navigator.clipboard.writeText(text).then(function() {
                 const originalText = element.innerHTML;
@@ -270,7 +267,6 @@
                     element.classList.remove('copied');
                 }, 1500);
             }).catch(function() {
-                // Eski tarayıcılar için yedek yöntem
                 const textArea = document.createElement('textarea');
                 textArea.value = text;
                 document.body.appendChild(textArea);

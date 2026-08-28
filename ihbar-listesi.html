@@ -1,4 +1,6 @@
-<!DOCTYPE html>
+ 
+
+ <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -20,83 +22,43 @@ body { background: #f4f6f9; padding: 10px; }
 .search-box:focus { border-color: #e31e24; }
 .filter-btn { padding: 5px 10px; border: 2px solid #e31e24; background: #fff; color: #e31e24; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.75rem; transition: all 0.3s; white-space: nowrap; }
 .filter-btn:hover, .filter-btn.active { background: #e31e24; color: #fff; }
+.filter-btn.cozuldu-btn { border-color: #06d6a0; color: #06d6a0; }
+.filter-btn.cozuldu-btn:hover, .filter-btn.cozuldu-btn.active { background: #06d6a0; color: #fff; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; padding: 15px; }
 .card { background: #fff; border-radius: 10px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; display: flex; flex-direction: column; border: 1px solid #eee; }
 .card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
-
-/* 🆕 ÜST GÖRSEL ALANI (THUMBNAIL) */
+.card.resolved { border: 2px solid #06d6a0 !important; opacity: 0.95; }
 .card-thumb { width: 100%; height: 180px; background: #2d3748; display: flex; align-items: center; justify-content: center; overflow: hidden; cursor: pointer; position: relative; }
 .card-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 .card-thumb .no-image { font-size: 3rem; opacity: 0.3; color: #fff; }
 .card-thumb .play-icon { position: absolute; font-size: 3rem; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.7); background: rgba(0,0,0,0.5); width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px); transition: transform 0.2s; }
 .card-thumb:hover .play-icon { transform: scale(1.1); background: rgba(227, 30, 36, 0.8); }
-
 .card-body { padding: 15px; flex: 1; display: flex; flex-direction: column; }
 .card-tur { display: inline-block; padding: 4px 12px; background: #e31e24; color: #fff; border-radius: 12px; font-size: 0.7rem; font-weight: 600; margin-bottom: 10px; align-self: flex-start; }
+.card-tur.resolved-badge { background: #06d6a0; }
 .card-ad { font-size: 0.95rem; font-weight: bold; color: #333; margin-bottom: 6px; }
 .card-ad .anonim { color: #888; font-style: italic; font-weight: normal; }
 .card-adres { font-size: 0.8rem; color: #666; margin-bottom: 10px; line-height: 1.4; }
-
-/* 🆕 METİN KESİLMESİ KALDIRILDI: Tamamı görünecek */
-.card-aciklama { 
-  font-size: 0.85rem; 
-  color: #444; 
-  line-height: 1.6; 
-  margin-bottom: 12px; 
-  white-space: pre-wrap; 
-}
-
-/* 🆕 ÇOKLU MEDYA BUTONLARI STİLİ */
-.media-buttons {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 8px;
-  padding-top: 10px;
-  border-top: 1px dashed #eee;
-}
-.media-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  padding: 6px 12px;
-  background: #f8f9fa;
-  color: #e31e24;
-  border: 1px solid #e31e24;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.media-btn:hover {
-  background: #e31e24;
-  color: #fff;
-}
-.media-btn.video {
-  background: #2d3748;
-  color: #fff;
-  border-color: #2d3748;
-}
-.media-btn.video:hover {
-  background: #1a202c;
-}
-
+.card-aciklama { font-size: 0.85rem; color: #444; line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
+.media-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px dashed #eee; }
+.media-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #f8f9fa; color: #e31e24; border: 1px solid #e31e24; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.media-btn:hover { background: #e31e24; color: #fff; }
+.media-btn.video { background: #2d3748; color: #fff; border-color: #2d3748; }
+.media-btn.video:hover { background: #1a202c; }
 .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #eee; font-size: 0.75rem; color: #888; flex-wrap: wrap; gap: 5px; margin-top: auto; }
 .card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
 .card-footer a:hover { text-decoration: underline; }
+.ihbar-no { background: #f3f4f6; color: #374151; padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-family: monospace; font-weight: bold; cursor: pointer; user-select: all; transition: all 0.3s; }
+.ihbar-no:hover { background: #e5e7eb; }
+.ihbar-no.copied { background: #06d6a0; color: #fff; }
 .loading { text-align: center; padding: 50px; color: #666; font-size: 1rem; }
 .error { text-align: center; padding: 30px; color: #e31e24; background: #fff; border-radius: 12px; margin: 15px; }
 .no-results { grid-column: 1/-1; text-align: center; padding: 40px; color: #888; }
-
-/* 🆕 LIGHTBOX GÜNCELLEMESİ (Iframe ve Video Desteği) */
 .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.92); z-index: 9999; justify-content: center; align-items: center; padding: 20px; }
 .lightbox.active { display: flex; }
 .lightbox img, .lightbox video, .lightbox iframe { max-width: 100%; max-height: 90vh; border-radius: 8px; background: #000; }
 .lightbox-close { position: absolute; top: 15px; right: 25px; color: #fff; font-size: 2.5rem; cursor: pointer; background: none; border: none; line-height: 1; z-index: 10000; }
 .lightbox-close:hover { color: #e31e24; }
-
-/* MOBİL UYUMLULUK */
 @media (max-width: 768px) {
   body { padding: 0; }
   .container { border-radius: 0; }
@@ -119,7 +81,7 @@ body { background: #f4f6f9; padding: 10px; }
 <body>
 <div class="container">
   <div class="header">
-    <h2>📋 Adana İhbar ve Talep Listesi</h2>
+    <h2> Adana İhbar ve Talep Listesi</h2>
     <p>Vatandaşlarımızdan gelen ihbarların detaylı listesi</p>
   </div>
   <div class="stats">
@@ -127,7 +89,7 @@ body { background: #f4f6f9; padding: 10px; }
     <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
   </div>
   <div class="controls">
-    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres veya açıklama ara...">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres, açıklama veya ihbar no ara...">
   </div>
   <div class="controls" id="filterBox"></div>
   <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
@@ -141,10 +103,11 @@ body { background: #f4f6f9; padding: 10px; }
 </div>
 
 <script>
-var API_URL = "https://script.google.com/macros/s/AKfycbyZlA_GMA1SeK4tNVUMDU_hxxDOPA6DsfW0iAkKfofxiYBOSWGu8085ntg31qnFY9nt/exec";
+var API_URL = "https://script.google.com/macros/s/AKfycbwIp_TfplGwKRwtLwBFABDDgAIlZEpOQil8kcHKcPFA4_yOivFAB_OdoXBO9fk0IRp-/exec";
 var allData = [];
 var filteredData = [];
 var activeFilter = 'all';
+var activeStatus = 'yayinlandi'; // 'yayinlandi' veya 'cozuldu'
 var searchQuery = '';
 
 var kategoriler = [
@@ -153,250 +116,4 @@ var kategoriler = [
   {id: 'yol', metin: 'Yol ve Kaldırım', emoji: String.fromCodePoint(0x1F573)},
   {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: String.fromCodePoint(0x1F333)},
   {id: 'su', metin: 'Su ve Kanalizasyon', emoji: String.fromCodePoint(0x1F4A7)},
-  {id: 'toplu', metin: 'Toplu Taşıma', emoji: String.fromCodePoint(0x1F68C)},
-  {id: 'trafik', metin: 'Trafik ve Otopark', emoji: String.fromCodePoint(0x1F697)},
-  {id: 'yaya', metin: 'Yaya Güvenliği', emoji: String.fromCodePoint(0x1F6B8)},
-  {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: String.fromCodePoint(0x1F50A)},
-  {id: 'diger', metin: 'Diğer', emoji: String.fromCodePoint(0x1F4CD)}
-];
-
-var kategoriMap = {
-  'Çöp-Moloz-Temizlik': 'cop',
-  'Yol ve Kaldırım': 'yol',
-  'Yeşil Alan-Park-Bahçe Problemleri': 'yesil',
-  'Yeşil Alan': 'yesil',
-  'Park': 'yesil',
-  'Bahçe': 'yesil',
-  'Su ve Kanalizasyon': 'su',
-  'Toplu Taşıma': 'toplu',
-  'Trafik ve Otopark': 'trafik',
-  'Yaya Güvenliği': 'yaya',
-  'Gürültü ve Görüntü Kirliliği': 'gurultu',
-  'Gürültü': 'gurultu'
-};
-
-function getKategoriKey(tur) {
-  if (!tur) return 'diger';
-  for (var k in kategoriMap) {
-    if (tur.indexOf(k) !== -1) return kategoriMap[k];
-  }
-  return 'diger';
-}
-
-function getEmoji(tur) {
-  var key = getKategoriKey(tur);
-  for (var i = 0; i < kategoriler.length; i++) {
-    if (kategoriler[i].id === key) return kategoriler[i].emoji;
-  }
-  return String.fromCodePoint(0x1F4CD);
-}
-
-// 🆕 GOOGLE DRIVE PREVIEW URL OLUŞTURMA (Hem video hem fotoğraf için kusursuz çalışır)
-function getDrivePreviewUrl(url) {
-  if (!url) return null;
-  var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (match) {
-    return 'https://drive.google.com/file/d/' + match[1] + '/preview';
-  }
-  return url;
-}
-
-function butonlariOlustur() {
-  var box = document.getElementById('filterBox');
-  box.innerHTML = '';
-  for (var i = 0; i < kategoriler.length; i++) {
-    var k = kategoriler[i];
-    var btn = document.createElement('button');
-    btn.className = 'filter-btn' + (i === 0 ? ' active' : '');
-    btn.setAttribute('data-id', k.id);
-    btn.textContent = k.emoji + ' ' + k.metin;
-    btn.onclick = function() {
-      document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
-      this.classList.add('active');
-      activeFilter = this.getAttribute('data-id');
-      uygulaFiltre();
-    };
-    box.appendChild(btn);
-  }
-}
-
-function tarihFormatla(tarihStr) {
-  if (!tarihStr) return 'Belirtilmemiş';
-  try {
-    var d = new Date(tarihStr);
-    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
-  } catch(e) {
-    return String(tarihStr).substring(0, 10);
-  }
-}
-
-// 🆕 KART OLUŞTURMA (Üst Görsel + Alt Butonlar)
-function kartOlustur(item) {
-  var emoji = getEmoji(item.tur);
-  var isAnonim = (item.adSoyad === 'Anonim' || item.adSoyad === 'Gizli' || !item.adSoyad || item.adSoyad === 'İsminin açıklanmasını istemeyen');
-  var adHtml = isAnonim 
-    ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' 
-    : ' ' + escapeHtml(item.adSoyad);
-  
-    // 🆕 Medya linklerini virgül, noktalı virgül VEYA yeni satır ile ayır (Google Forms uyumlu)
-  var mediaLinks = [];
-  if (item.gorsel) {
-    mediaLinks = item.gorsel.split(/[,;\n]+/).map(function(u) { return u.trim(); }).filter(function(u) { return u.length > 10 && u.includes('http'); });
-  }
-  
-  // 🆕 1. ÜST GÖRSEL ALANI (THUMBNAIL)
-  var thumbHtml = '';
-  if (mediaLinks.length > 0) {
-    var firstLink = mediaLinks[0];
-    var isVideo = firstLink.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(firstLink);
-    
-    // Drive linkleri için thumbnail URL'si oluştur (Sadece görseller için)
-    var thumbSrc = firstLink;
-    var driveMatch = firstLink.match(/\/d\/([a-zA-Z0-9_-]+)/) || firstLink.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-    if (driveMatch && !isVideo) {
-      thumbSrc = 'https://lh3.googleusercontent.com/d/' + driveMatch[1] + '=w600';
-    }
-
-    if (isVideo) {
-      thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
-    } else {
-      thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar görseli" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
-    }
-  } else {
-    thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
-  }
-
-  // 🆕 2. ALT MEDYA BUTONLARI
-  var mediaButtonsHtml = '';
-  if (mediaLinks.length > 0) {
-    mediaButtonsHtml += '<div class="media-buttons">';
-    mediaLinks.forEach(function(link, index) {
-      var isVid = link.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(link);
-      var btnClass = isVid ? 'media-btn video' : 'media-btn';
-      var icon = isVid ? '🎥' : '📷';
-      var label = isVid ? 'Video' : ('Görsel ' + (index + 1));
-      
-      var safeLink = escapeAttr(link);
-      mediaButtonsHtml += '<button class="' + btnClass + '" onclick="openLightbox(\'' + safeLink + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
-    });
-    mediaButtonsHtml += '</div>';
-  }
-  
-  var haritaLinkHtml = item.haritaLink 
-    ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' 
-    : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
-  
-  return '<div class="card">' +
-    thumbHtml + // Üstte görsel
-    '<div class="card-body">' +
-      '<span class="card-tur">' + emoji + ' ' + escapeHtml(item.tur || 'Genel İhbar') + '</span>' +
-      '<div class="card-ad">' + adHtml + '</div>' +
-      '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
-      '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
-      mediaButtonsHtml + // Altta butonlar
-      '<div class="card-footer">' +
-        '<span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
-        haritaLinkHtml +
-      '</div>' +
-    '</div>' +
-  '</div>';
-}
-
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-}
-
-function escapeAttr(str) {
-  if (!str) return '';
-  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-}
-
-function uygulaFiltre() {
-  filteredData = allData.filter(function(item) {
-    var kategoriEslesme = (activeFilter === 'all') || (getKategoriKey(item.tur) === activeFilter);
-    var aramaEslesme = true;
-    if (searchQuery) {
-      var q = searchQuery.toLowerCase();
-      aramaEslesme = (item.adres && item.adres.toLowerCase().indexOf(q) !== -1) ||
-                     (item.aciklama && item.aciklama.toLowerCase().indexOf(q) !== -1) ||
-                     (item.tur && item.tur.toLowerCase().indexOf(q) !== -1);
-    }
-    return kategoriEslesme && aramaEslesme;
-  });
-  
-  var grid = document.getElementById('grid');
-  grid.innerHTML = '';
-  filteredData.forEach(function(item) {
-    grid.innerHTML += kartOlustur(item);
-  });
-  
-  document.getElementById('visibleCount').textContent = filteredData.length;
-  
-  if (filteredData.length === 0) {
-    grid.innerHTML = '<div class="no-results">🔍 Bu kriterlere uygun ihbar bulunamadı.</div>';
-  }
-}
-
-// 🆕 AKILLI LIGHTBOX (Google Drive Iframe Desteği)
-function openLightbox(url, isVideo) {
-  var lb = document.getElementById('lightbox');
-  var content = document.getElementById('lightboxContent');
-  
-  // Link Google Drive linki mi kontrol et
-  var driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  
-  if (driveMatch) {
-    // Google Drive ise hem videoyu hem fotoğrafı kusursuz oynatan /preview iframe'i kullan
-    var fileId = driveMatch[1];
-    content.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%; height:80vh; border:none; border-radius:8px;" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
-  } else if (isVideo) {
-    // Doğrudan video linki ise
-    content.innerHTML = '<video src="' + escapeAttr(url) + '" controls autoplay style="max-width:100%; max-height:90vh; border-radius:8px;"></video>';
-  } else {
-    // Doğrudan fotoğraf linki ise
-    content.innerHTML = '<img src="' + escapeAttr(url) + '" alt="Büyük görsel" style="max-width:100%; max-height:90vh; border-radius:8px;" onerror="this.parentElement.innerHTML=\'<p style=color:#fff;font-size:1.2rem;>Görsel yüklenemedi</p>\'">';
-  }
-  lb.classList.add('active');
-}
-
-function closeLightbox() {
-  document.getElementById('lightbox').classList.remove('active');
-  document.getElementById('lightboxContent').innerHTML = ''; // Belleği temizle
-}
-
-document.getElementById('searchBox').addEventListener('input', function(e) {
-  searchQuery = e.target.value.trim();
-  uygulaFiltre();
-});
-
-document.getElementById('lightbox').addEventListener('click', function(e) {
-  if (e.target === this) closeLightbox();
-});
-
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') closeLightbox();
-});
-
-function init() {
-  butonlariOlustur();
-  fetch(API_URL)
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-      allData = data;
-      document.getElementById('totalCount').textContent = data.length;
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('grid').style.display = 'grid';
-      uygulaFiltre();
-    })
-    .catch(function(e) {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('error').style.display = 'block';
-      document.getElementById('error').textContent = '❌ İhbarlar yüklenirken hata oluştu. Lütfen sayfayı yenileyin.';
-    });
-}
-
-window.addEventListener('load', function() { setTimeout(init, 100); });
-</script>
-</body>
-</html>
+  {id: '

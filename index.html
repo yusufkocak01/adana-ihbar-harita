@@ -332,5 +332,36 @@
 
         window.onload = function() { initFilters(); initMap(); };
     </script>
+    
+<!-- 📏 IFRAME YÜKSEKLİĞİNİ OTOMATİK AYARLAYAN SCRIPT -->
+<script>
+function updateIframeHeight() {
+  const height = Math.max(
+    document.body.scrollHeight,
+    document.body.offsetHeight,
+    document.documentElement.scrollHeight,
+    document.documentElement.offsetHeight
+  );
+  
+  // Parent sayfaya yüksekliği gönder
+  window.parent.postMessage({
+    type: 'SET_HEIGHT',
+    height: height + 20 // 20px alt boşluk ekle
+  }, '*');
+}
+
+// Sayfa yüklendiğinde ve her değiştiğinde yüksekliği güncelle
+window.addEventListener('load', updateIframeHeight);
+window.addEventListener('resize', updateIframeHeight);
+
+// İçerik değiştiğinde de tetikle (örn: filtreleme, arama, yeni veri)
+const observer = new MutationObserver(updateIframeHeight);
+observer.observe(document.body, { 
+  childList: true, 
+  subtree: true,
+  attributes: true 
+});
+</script>
+
 </body>
 </html>

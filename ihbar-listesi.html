@@ -47,25 +47,35 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 .card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
 .card-footer a:hover { text-decoration: underline; }
 
-/* 🆕 İHBAR NO - Scroll engellemesi için güncellendi */
+/* 🆕 İHBAR NO VE KOPYALA BUTONU */
+.ihbar-no-container { display: flex; align-items: center; gap: 6px; }
 .ihbar-no { 
   background: #f3f4f6; 
   color: #374151; 
-  padding: 4px 10px; 
+  padding: 4px 8px; 
   border-radius: 4px; 
-  font-size: 0.75rem; 
+  font-size: 0.72rem; 
   font-family: monospace; 
   font-weight: bold; 
-  cursor: pointer; 
-  transition: all 0.3s; 
   border: 1px solid #e5e7eb;
-  display: inline-block;
-  user-select: none;
-  touch-action: manipulation; /* 🎯 Touch scroll'u engeller */
-  -webkit-tap-highlight-color: transparent; /* Mobilde tıklama vurgusunu kaldırır */
+  white-space: nowrap;
 }
-.ihbar-no:hover { background: #e5e7eb; }
-.ihbar-no.copied { background: #06d6a0 !important; color: #fff !important; border-color: #06d6a0 !important; }
+.copy-btn {
+  background: #06d6a0;
+  color: #fff;
+  border: none;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 0.72rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  white-space: nowrap;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+.copy-btn:hover { background: #05b88a; }
+.copy-btn.copied { background: #e31e24 !important; }
 
 .loading { text-align: center; padding: 50px; color: #666; font-size: 1rem; }
 .error { text-align: center; padding: 30px; color: #e31e24; background: #fff; border-radius: 12px; margin: 15px; }
@@ -78,6 +88,7 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 @media (max-width: 768px) {
   body { padding: 0; } .container { border-radius: 0; } .header h2 { font-size: 1.1rem; } .grid { grid-template-columns: 1fr; gap: 12px; padding: 12px; }
   .filter-btn { font-size: 0.7rem; padding: 4px 8px; } .search-box { width: 100%; }
+  .ihbar-no-container { flex-wrap: wrap; }
 }
 </style>
 </head>
@@ -92,7 +103,7 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
     <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
   </div>
   <div class="controls">
-    <input type="text" class="search-box" id="searchBox" placeholder=" Adres, açıklama veya ihbar no ara...">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres, açıklama veya ihbar no ara...">
   </div>
   <div class="controls" id="filterBox"></div>
   <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
@@ -212,17 +223,17 @@ function kartOlustur(item) {
     mediaLinks.forEach(function(link, index) {
       var isVid = link.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(link);
       var btnClass = isVid ? 'media-btn video' : 'media-btn';
-      var icon = isVid ? '🎥' : '📷';
+      var icon = isVid ? '' : '📷';
       var label = isVid ? 'Video' : ('Görsel ' + (index + 1));
       mediaButtonsHtml += '<button class="' + btnClass + '" onclick="openLightbox(\'' + escapeAttr(link) + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
     });
     mediaButtonsHtml += '</div>';
   }
   
-  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
+  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">️ Harita</a>' : '<span> ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  //  DÜZELTME: onclick yerine data attribute kullanacağız, event listener ile yakalayacağız
-  var ihbarNoHtml = '<span class="ihbar-no" data-ihbar="' + escapeAttr(item.ihbarNo) + '" title="Kopyalamak için tıklayın">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
+  //  İHBAR NO + AYRI KOPYALA BUTONU
+  var ihbarNoHtml = '<div class="ihbar-no-container"><span class="ihbar-no">📋 ' + escapeHtml(item.ihbarNo) + '</span><button class="copy-btn" data-ihbar="' + escapeAttr(item.ihbarNo) + '">📋 Kopyala</button></div>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
 
@@ -234,66 +245,59 @@ function kartOlustur(item) {
     ihbarNoHtml + haritaLinkHtml + '</div></div></div>';
 }
 
-//  KRİTİK DÜZELTME: Event delegation ile kopyalama (iframe scroll sorununu çözer)
+//  EVENT DELEGATION: Kopyala butonuna tıklamayı yakala
 document.addEventListener('click', function(e) {
-  var target = e.target.closest('.ihbar-no');
-  if (!target) return;
+  var btn = e.target.closest('.copy-btn');
+  if (!btn) return;
   
-  // Tüm varsayılan davranışları engelle
   e.preventDefault();
   e.stopPropagation();
   e.stopImmediatePropagation();
   
-  var text = target.getAttribute('data-ihbar');
+  var text = btn.getAttribute('data-ihbar');
   if (!text) return;
   
-  // Clipboard API kullan
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      showCopiedFeedback(target, text);
-    }).catch(function() {
-      fallbackCopy(target, text);
-    });
-  } else {
-    fallbackCopy(target, text);
-  }
-  
+  copyToClipboard(text, btn);
   return false;
-}, { passive: false }); // passive: false, preventDefault'in çalışmasını garanti eder
-
-// Touch event'lerini de yakala (mobil için)
-document.addEventListener('touchend', function(e) {
-  var target = e.target.closest('.ihbar-no');
-  if (!target) return;
-  
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  
-  var text = target.getAttribute('data-ihbar');
-  if (!text) return;
-  
-  if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() {
-      showCopiedFeedback(target, text);
-    }).catch(function() {
-      fallbackCopy(target, text);
-    });
-  } else {
-    fallbackCopy(target, text);
-  }
 }, { passive: false });
 
-function showCopiedFeedback(element, originalText) {
-  element.classList.add('copied');
-  element.textContent = '✅ Kopyalandı!';
+document.addEventListener('touchend', function(e) {
+  var btn = e.target.closest('.copy-btn');
+  if (!btn) return;
+  
+  e.preventDefault();
+  e.stopPropagation();
+  e.stopImmediatePropagation();
+  
+  var text = btn.getAttribute('data-ihbar');
+  if (!text) return;
+  
+  copyToClipboard(text, btn);
+}, { passive: false });
+
+function copyToClipboard(text, btn) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopiedFeedback(btn);
+    }).catch(function() {
+      fallbackCopy(text, btn);
+    });
+  } else {
+    fallbackCopy(text, btn);
+  }
+}
+
+function showCopiedFeedback(btn) {
+  var originalText = btn.textContent;
+  btn.textContent = '✅ Kopyalandı!';
+  btn.classList.add('copied');
   setTimeout(function() {
-    element.classList.remove('copied');
-    element.textContent = '📋 İhbar No: ' + originalText;
+    btn.textContent = originalText;
+    btn.classList.remove('copied');
   }, 1500);
 }
 
-function fallbackCopy(element, text) {
+function fallbackCopy(text, btn) {
   var textArea = document.createElement('textarea');
   textArea.value = text;
   textArea.style.position = 'fixed';
@@ -304,7 +308,7 @@ function fallbackCopy(element, text) {
   textArea.select();
   try {
     document.execCommand('copy');
-    showCopiedFeedback(element, text);
+    showCopiedFeedback(btn);
   } catch (err) {
     console.error('Kopyalama başarısız:', err);
   }
@@ -330,7 +334,7 @@ function uygulaFiltre() {
   grid.innerHTML = '';
   filteredData.forEach(function(item) { grid.innerHTML += kartOlustur(item); });
   document.getElementById('visibleCount').textContent = filteredData.length;
-  if (filteredData.length === 0) grid.innerHTML = '<div class="no-results">🔍 Bu kriterlere uygun ihbar bulunamadı.</div>';
+  if (filteredData.length === 0) grid.innerHTML = '<div class="no-results"> Bu kriterlere uygun ihbar bulunamadı.</div>';
 }
 
 function openLightbox(url, isVideo) {

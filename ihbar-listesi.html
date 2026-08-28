@@ -38,6 +38,38 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 .card-ad .anonim { color: #888; font-style: italic; font-weight: normal; }
 .card-adres { font-size: 0.8rem; color: #666; margin-bottom: 10px; line-height: 1.4; }
 .card-aciklama { font-size: 0.85rem; color: #444; line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
+
+/* 🆕 ÇÖZÜM KUTUSU */
+.card-cozum { 
+    background: #f0fdf4; 
+    border-left: 4px solid #06d6a0; 
+    padding: 10px 12px; 
+    margin: 10px 0; 
+    border-radius: 4px; 
+    font-size: 0.85rem; 
+    color: #333; 
+    line-height: 1.5;
+}
+.card-cozum .cozum-label { 
+    font-weight: bold; 
+    color: #06d6a0; 
+    font-size: 0.75rem; 
+    margin-bottom: 4px; 
+    display: block;
+}
+
+/* 🆕 KURUM BADGE */
+.kurum-badge { 
+    display: inline-block; 
+    background: #e31e24; 
+    color: white; 
+    padding: 3px 10px; 
+    border-radius: 12px; 
+    font-size: 0.7rem; 
+    font-weight: bold; 
+    margin-bottom: 8px; 
+}
+
 .media-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px dashed #eee; }
 .media-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #f8f9fa; color: #e31e24; border: 1px solid #e31e24; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
 .media-btn:hover { background: #e31e24; color: #fff; }
@@ -47,7 +79,6 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 .card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
 .card-footer a:hover { text-decoration: underline; }
 
-/* 🆕 İHBAR NO VE KOPYALA BUTONU */
 .ihbar-no-container { display: flex; align-items: center; gap: 6px; }
 .ihbar-no { 
   background: #f3f4f6; 
@@ -214,7 +245,7 @@ function kartOlustur(item) {
     if (isVideo) thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
     else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
   } else {
-    thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
+    thumbHtml = '<div class="card-thumb"><div class="no-image"></div></div>';
   }
 
   var mediaButtonsHtml = '';
@@ -223,29 +254,45 @@ function kartOlustur(item) {
     mediaLinks.forEach(function(link, index) {
       var isVid = link.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(link);
       var btnClass = isVid ? 'media-btn video' : 'media-btn';
-      var icon = isVid ? '' : '📷';
+      var icon = isVid ? '🎥' : '📷';
       var label = isVid ? 'Video' : ('Görsel ' + (index + 1));
-      mediaButtonsHtml += '<button class="' + btnClass + '" onclick="openLightbox(\'' + escapeAttr(link) + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
+      mediaButtonsHtml += '<button type="button" class="' + btnClass + '" onclick="openLightbox(\'' + escapeAttr(link) + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
     });
     mediaButtonsHtml += '</div>';
   }
   
-  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">️ Harita</a>' : '<span> ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
+  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  //  İHBAR NO + AYRI KOPYALA BUTONU
-  var ihbarNoHtml = '<div class="ihbar-no-container"><span class="ihbar-no">📋 ' + escapeHtml(item.ihbarNo) + '</span><button class="copy-btn" data-ihbar="' + escapeAttr(item.ihbarNo) + '">📋 Kopyala</button></div>';
+  // 🆕 KURUM BADGE
+  var kurumBadge = '';
+  if (item.kurum && item.kurum !== 'Belirtilmedi') {
+    kurumBadge = '<div class="kurum-badge">🏛️ ' + escapeHtml(item.kurum) + '</div>';
+  }
+  
+  // 🆕 ÇÖZÜM AÇIKLAMASI (varsa belediyenin, yoksa vatandaşın)
+  var cozumBox = '';
+  var gosterilecekAciklama = item.aciklama || 'Açıklama yok';
+  
+  if (item.belediyeAciklama && item.belediyeAciklama !== 'Belediye tarafından ek açıklama girilmedi.') {
+    cozumBox = '<div class="card-cozum"><span class="cozum-label">✅ ÇÖZÜM AÇIKLAMASI:</span>' + escapeHtml(item.belediyeAciklama) + '</div>';
+    gosterilecekAciklama = item.aciklama || 'Açıklama yok'; // Vatandaşın ihbarı da kalsın
+  }
+  
+  var ihbarNoHtml = '<div class="ihbar-no-container"><span class="ihbar-no"> ' + escapeHtml(item.ihbarNo) + '</span><button type="button" class="copy-btn" data-ihbar="' + escapeAttr(item.ihbarNo) + '">📋 Kopyala</button></div>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
 
   return '<div class="' + cardClass + '">' + thumbHtml + '<div class="card-body">' +
-    statusBadge + '<div class="card-ad">' + adHtml + '</div>' +
+    statusBadge + kurumBadge +
+    '<div class="card-ad">' + adHtml + '</div>' +
     '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
-    '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
+    '<div class="card-aciklama"><strong>📝 İhbar Detayı:</strong><br>' + escapeHtml(gosterilecekAciklama) + '</div>' +
+    cozumBox +
     mediaButtonsHtml + '<div class="card-footer"><span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
     ihbarNoHtml + haritaLinkHtml + '</div></div></div>';
 }
 
-//  EVENT DELEGATION: Kopyala butonuna tıklamayı yakala
+// 🆕 KOPYALAMA - type="button" ile scroll sorunu çözüldü
 document.addEventListener('click', function(e) {
   var btn = e.target.closest('.copy-btn');
   if (!btn) return;

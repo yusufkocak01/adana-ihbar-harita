@@ -36,17 +36,19 @@
         .media-btn.map:hover { background: #0056b3; }
 
         /*  KOPYALANABİLİR İHBAR NO STİLİ */
-        .copyable-ihbar-no {
-            background: #f3f4f6; padding: 8px; border-radius: 6px; font-family: monospace; 
-            font-weight: bold; font-size: 0.85rem; text-align: center; margin-bottom: 10px; 
-            border: 1px solid #ddd; cursor: pointer; transition: all 0.3s; user-select: all;
-        }
-        .copyable-ihbar-no:hover { background: #e5e7eb; }
-        .copyable-ihbar-no.copied { 
-            background: #06d6a0 !important; 
-            color: white !important; 
-            border-color: #06d6a0 !important; 
-        }
+     .copyable-ihbar-no {
+    background: #f3f4f6; padding: 8px; border-radius: 6px; font-family: monospace; 
+    font-weight: bold; font-size: 0.85rem; text-align: center; margin-bottom: 10px; 
+    border: 1px solid #ddd; cursor: pointer; transition: all 0.3s; user-select: none;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+.copyable-ihbar-no:hover { background: #e5e7eb; }
+.copyable-ihbar-no.copied { 
+    background: #06d6a0 !important; 
+    color: white !important; 
+    border-color: #06d6a0 !important; 
+}
 
         .marker-cluster-small { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-small div { background-color: rgba(227, 30, 36, 0.6); }

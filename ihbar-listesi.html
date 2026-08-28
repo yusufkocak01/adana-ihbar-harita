@@ -39,36 +39,9 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 .card-adres { font-size: 0.8rem; color: #666; margin-bottom: 10px; line-height: 1.4; }
 .card-aciklama { font-size: 0.85rem; color: #444; line-height: 1.6; margin-bottom: 12px; white-space: pre-wrap; }
 
-/* 🆕 ÇÖZÜM KUTUSU */
-.card-cozum { 
-    background: #f0fdf4; 
-    border-left: 4px solid #06d6a0; 
-    padding: 10px 12px; 
-    margin: 10px 0; 
-    border-radius: 4px; 
-    font-size: 0.85rem; 
-    color: #333; 
-    line-height: 1.5;
-}
-.card-cozum .cozum-label { 
-    font-weight: bold; 
-    color: #06d6a0; 
-    font-size: 0.75rem; 
-    margin-bottom: 4px; 
-    display: block;
-}
-
-/* 🆕 KURUM BADGE */
-.kurum-badge { 
-    display: inline-block; 
-    background: #e31e24; 
-    color: white; 
-    padding: 3px 10px; 
-    border-radius: 12px; 
-    font-size: 0.7rem; 
-    font-weight: bold; 
-    margin-bottom: 8px; 
-}
+.kurum-badge { display: inline-block; background: #e31e24; color: white; padding: 3px 10px; border-radius: 12px; font-size: 0.7rem; font-weight: bold; margin-bottom: 8px; }
+.card-cozum { background: #f0fdf4; border-left: 4px solid #06d6a0; padding: 10px 12px; margin: 10px 0; border-radius: 4px; font-size: 0.85rem; color: #333; line-height: 1.5; }
+.card-cozum .cozum-label { font-weight: bold; color: #06d6a0; font-size: 0.75rem; margin-bottom: 4px; display: block; }
 
 .media-buttons { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 10px; border-top: 1px dashed #eee; }
 .media-btn { display: inline-flex; align-items: center; gap: 5px; padding: 6px 12px; background: #f8f9fa; color: #e31e24; border: 1px solid #e31e24; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
@@ -80,31 +53,8 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 .card-footer a:hover { text-decoration: underline; }
 
 .ihbar-no-container { display: flex; align-items: center; gap: 6px; }
-.ihbar-no { 
-  background: #f3f4f6; 
-  color: #374151; 
-  padding: 4px 8px; 
-  border-radius: 4px; 
-  font-size: 0.72rem; 
-  font-family: monospace; 
-  font-weight: bold; 
-  border: 1px solid #e5e7eb;
-  white-space: nowrap;
-}
-.copy-btn {
-  background: #06d6a0;
-  color: #fff;
-  border: none;
-  padding: 4px 10px;
-  border-radius: 4px;
-  font-size: 0.72rem;
-  font-weight: bold;
-  cursor: pointer;
-  transition: all 0.3s;
-  white-space: nowrap;
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
+.ihbar-no { background: #f3f4f6; color: #374151; padding: 4px 8px; border-radius: 4px; font-size: 0.72rem; font-family: monospace; font-weight: bold; border: 1px solid #e5e7eb; white-space: nowrap; }
+.copy-btn { background: #06d6a0; color: #fff; border: none; padding: 4px 10px; border-radius: 4px; font-size: 0.72rem; font-weight: bold; cursor: pointer; transition: all 0.3s; white-space: nowrap; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
 .copy-btn:hover { background: #05b88a; }
 .copy-btn.copied { background: #e31e24 !important; }
 
@@ -148,7 +98,8 @@ body { background: #f4f6f9; padding: 10px; overscroll-behavior: contain; }
 </div>
 
 <script>
-var API_URL = "https://script.google.com/macros/s/AKfycbymNOBui2YIyaR0Nvt8BNEkvUy6oYqvAOxlDf4ikcdaUYF6TGNW6QmNCYWjEL-FuKAW/exec";
+var API_URL = "https://script.google.com/macros/s/AKfycbymNOBui2YIyaR0Nvt8BNEkvUy6oYqvAOxlDf4ikcdaUYF6TGNW6QmNCYWjEL-FuKAW/exec
+";
 var allData = [], filteredData = [], activeFilter = 'all', activeStatus = 'yayinlandi', searchQuery = '';
 
 var kategoriler = [
@@ -171,17 +122,11 @@ var kategoriMap = {
   'Gürültü ve Görüntü Kirliliği': 'gurultu', 'Gürültü': 'gurultu'
 };
 
-function getKategoriKey(tur) {
-  if (!tur) return 'diger';
-  for (var k in kategoriMap) { if (tur.indexOf(k) !== -1) return kategoriMap[k]; }
-  return 'diger';
-}
-
-function getEmoji(tur) {
-  var key = getKategoriKey(tur);
-  for (var i = 0; i < kategoriler.length; i++) { if (kategoriler[i].id === key) return kategoriler[i].emoji; }
-  return String.fromCodePoint(0x1F4CD);
-}
+function getKategoriKey(tur) { if (!tur) return 'diger'; for (var k in kategoriMap) { if (tur.indexOf(k) !== -1) return kategoriMap[k]; } return 'diger'; }
+function getEmoji(tur) { var key = getKategoriKey(tur); for (var i = 0; i < kategoriler.length; i++) { if (kategoriler[i].id === key) return kategoriler[i].emoji; } return String.fromCodePoint(0x1F4CD); }
+function tarihFormatla(tarihStr) { if (!tarihStr) return 'Belirtilmemiş'; try { return new Date(tarihStr).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } catch(e) { return String(tarihStr).substring(0, 10); } }
+function escapeHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function escapeAttr(str) { if (!str) return ''; return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
 function butonlariOlustur() {
   var box = document.getElementById('filterBox');
@@ -214,25 +159,14 @@ function butonlariOlustur() {
   box.appendChild(cozulduBtn);
 }
 
-function tarihFormatla(tarihStr) {
-  if (!tarihStr) return 'Belirtilmemiş';
-  try { return new Date(tarihStr).toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' }); } 
-  catch(e) { return String(tarihStr).substring(0, 10); }
-}
-
 function kartOlustur(item) {
   var emoji = getEmoji(item.tur);
   var isAnonim = (item.adSoyad === 'Anonim' || item.adSoyad === 'Gizli' || !item.adSoyad || item.adSoyad === 'İsminin açıklanmasını istemeyen');
   var adHtml = isAnonim ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' : ' ' + escapeHtml(item.adSoyad);
-  
-  var statusBadge = item.durum === 'çözüldü' 
-    ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' 
-    : '<span class="card-tur">' + emoji + ' ' + escapeHtml(item.tur || 'Genel İhbar') + '</span>';
+  var statusBadge = item.durum === 'çözüldü' ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' : '<span class="card-tur">' + emoji + ' ' + escapeHtml(item.tur || 'Genel İhbar') + '</span>';
 
   var mediaLinks = [];
-  if (item.gorsel) {
-    mediaLinks = item.gorsel.split(/[,;\n]+/).map(function(u) { return u.trim(); }).filter(function(u) { return u.length > 10 && u.includes('http'); });
-  }
+  if (item.gorsel) { mediaLinks = item.gorsel.split(/[,;\n]+/).map(function(u) { return u.trim(); }).filter(function(u) { return u.length > 10 && u.includes('http'); }); }
   
   var thumbHtml = '';
   if (mediaLinks.length > 0) {
@@ -241,12 +175,9 @@ function kartOlustur(item) {
     var thumbSrc = firstLink;
     var driveMatch = firstLink.match(/\/d\/([a-zA-Z0-9_-]+)/) || firstLink.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     if (driveMatch && !isVideo) thumbSrc = 'https://lh3.googleusercontent.com/d/' + driveMatch[1] + '=w600';
-
     if (isVideo) thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
     else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
-  } else {
-    thumbHtml = '<div class="card-thumb"><div class="no-image"></div></div>';
-  }
+  } else { thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>'; }
 
   var mediaButtonsHtml = '';
   if (mediaLinks.length > 0) {
@@ -263,22 +194,17 @@ function kartOlustur(item) {
   
   var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  // 🆕 KURUM BADGE
   var kurumBadge = '';
-  if (item.kurum && item.kurum !== 'Belirtilmedi') {
-    kurumBadge = '<div class="kurum-badge">🏛️ ' + escapeHtml(item.kurum) + '</div>';
-  }
+  if (item.kurum && item.kurum !== 'Belirtilmedi') { kurumBadge = '<div class="kurum-badge">🏛️ ' + escapeHtml(item.kurum) + '</div>'; }
   
-  // 🆕 ÇÖZÜM AÇIKLAMASI (varsa belediyenin, yoksa vatandaşın)
   var cozumBox = '';
   var gosterilecekAciklama = item.aciklama || 'Açıklama yok';
-  
   if (item.belediyeAciklama && item.belediyeAciklama !== 'Belediye tarafından ek açıklama girilmedi.') {
     cozumBox = '<div class="card-cozum"><span class="cozum-label">✅ ÇÖZÜM AÇIKLAMASI:</span>' + escapeHtml(item.belediyeAciklama) + '</div>';
-    gosterilecekAciklama = item.aciklama || 'Açıklama yok'; // Vatandaşın ihbarı da kalsın
   }
   
-  var ihbarNoHtml = '<div class="ihbar-no-container"><span class="ihbar-no"> ' + escapeHtml(item.ihbarNo) + '</span><button type="button" class="copy-btn" data-ihbar="' + escapeAttr(item.ihbarNo) + '">📋 Kopyala</button></div>';
+  // BASİT VE GÜVENİLİR YÖNTEM: onclick + return false
+  var ihbarNoHtml = '<div class="ihbar-no-container"><span class="ihbar-no">📋 ' + escapeHtml(item.ihbarNo) + '</span><button type="button" class="copy-btn" onclick="copyIhbarNo(event, \'' + escapeAttr(item.ihbarNo) + '\'); return false;">📋 Kopyala</button></div>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
 
@@ -292,78 +218,28 @@ function kartOlustur(item) {
     ihbarNoHtml + haritaLinkHtml + '</div></div></div>';
 }
 
-// 🆕 KOPYALAMA - type="button" ile scroll sorunu çözüldü
-document.addEventListener('click', function(e) {
-  var btn = e.target.closest('.copy-btn');
-  if (!btn) return;
-  
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  
-  var text = btn.getAttribute('data-ihbar');
-  if (!text) return;
-  
-  copyToClipboard(text, btn);
-  return false;
-}, { passive: false });
-
-document.addEventListener('touchend', function(e) {
-  var btn = e.target.closest('.copy-btn');
-  if (!btn) return;
-  
-  e.preventDefault();
-  e.stopPropagation();
-  e.stopImmediatePropagation();
-  
-  var text = btn.getAttribute('data-ihbar');
-  if (!text) return;
-  
-  copyToClipboard(text, btn);
-}, { passive: false });
-
-function copyToClipboard(text, btn) {
+// BASİT VE GÜVENİLİR KOPYALAMA FONKSİYONU
+function copyIhbarNo(event, text) {
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text).then(function() {
-      showCopiedFeedback(btn);
-    }).catch(function() {
-      fallbackCopy(text, btn);
+      var btn = event.target.closest('.copy-btn');
+      if (btn) {
+        var originalText = btn.textContent;
+        btn.textContent = '✅ Kopyalandı!';
+        btn.classList.add('copied');
+        setTimeout(function() {
+          btn.textContent = originalText;
+          btn.classList.remove('copied');
+        }, 1500);
+      }
     });
-  } else {
-    fallbackCopy(text, btn);
   }
+  return false; // Zıplamayı kesin olarak engeller
 }
-
-function showCopiedFeedback(btn) {
-  var originalText = btn.textContent;
-  btn.textContent = '✅ Kopyalandı!';
-  btn.classList.add('copied');
-  setTimeout(function() {
-    btn.textContent = originalText;
-    btn.classList.remove('copied');
-  }, 1500);
-}
-
-function fallbackCopy(text, btn) {
-  var textArea = document.createElement('textarea');
-  textArea.value = text;
-  textArea.style.position = 'fixed';
-  textArea.style.left = '-9999px';
-  textArea.style.top = '-9999px';
-  document.body.appendChild(textArea);
-  textArea.focus();
-  textArea.select();
-  try {
-    document.execCommand('copy');
-    showCopiedFeedback(btn);
-  } catch (err) {
-    console.error('Kopyalama başarısız:', err);
-  }
-  document.body.removeChild(textArea);
-}
-
-function escapeHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
-function escapeAttr(str) { if (!str) return ''; return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"'); }
 
 function uygulaFiltre() {
   filteredData = allData.filter(function(item) {
@@ -381,20 +257,16 @@ function uygulaFiltre() {
   grid.innerHTML = '';
   filteredData.forEach(function(item) { grid.innerHTML += kartOlustur(item); });
   document.getElementById('visibleCount').textContent = filteredData.length;
-  if (filteredData.length === 0) grid.innerHTML = '<div class="no-results"> Bu kriterlere uygun ihbar bulunamadı.</div>';
+  if (filteredData.length === 0) grid.innerHTML = '<div class="no-results">🔍 Bu kriterlere uygun ihbar bulunamadı.</div>';
 }
 
 function openLightbox(url, isVideo) {
   var lb = document.getElementById('lightbox');
   var content = document.getElementById('lightboxContent');
   var driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  if (driveMatch) {
-    content.innerHTML = '<iframe src="https://drive.google.com/file/d/' + driveMatch[1] + '/preview" style="width:100%; height:80vh; border:none; border-radius:8px;" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
-  } else if (isVideo) {
-    content.innerHTML = '<video src="' + escapeAttr(url) + '" controls autoplay style="max-width:100%; max-height:90vh; border-radius:8px;"></video>';
-  } else {
-    content.innerHTML = '<img src="' + escapeAttr(url) + '" alt="Büyük görsel" style="max-width:100%; max-height:90vh; border-radius:8px;">';
-  }
+  if (driveMatch) { content.innerHTML = '<iframe src="https://drive.google.com/file/d/' + driveMatch[1] + '/preview" style="width:100%; height:80vh; border:none; border-radius:8px;" allow="autoplay; encrypted-media" allowfullscreen></iframe>'; } 
+  else if (isVideo) { content.innerHTML = '<video src="' + escapeAttr(url) + '" controls autoplay style="max-width:100%; max-height:90vh; border-radius:8px;"></video>'; } 
+  else { content.innerHTML = '<img src="' + escapeAttr(url) + '" alt="Büyük görsel" style="max-width:100%; max-height:90vh; border-radius:8px;">'; }
   lb.classList.add('active');
 }
 

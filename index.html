@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Taşköprü Gazetesi Adana İhbar Haritası</title>
-    
-    <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <!-- Marker Cluster CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css" />
     <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css" />
-    
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: #f4f6f9; }
@@ -20,10 +16,11 @@
         .filters { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; padding: 15px; background: white; border-bottom: 1px solid #ddd; }
         .filter-btn { padding: 6px 14px; border: 2px solid #e31e24; background: white; color: #e31e24; border-radius: 20px; cursor: pointer; font-weight: 600; font-size: 0.85rem; transition: all 0.3s; white-space: nowrap; }
         .filter-btn:hover, .filter-btn.active { background: #e31e24; color: white; }
+        .filter-btn.cozuldu-btn { border-color: #06d6a0; color: #06d6a0; }
+        .filter-btn.cozuldu-btn:hover, .filter-btn.cozuldu-btn.active { background: #06d6a0; color: white; }
         #map { height: calc(100vh - 200px); width: 100%; z-index: 1; }
         .loading { text-align: center; padding: 50px; font-size: 1.2rem; color: #666; }
         
-        /* Popup Stilleri */
         .ihbar-popup { font-size: 0.9rem; }
         .ihbar-popup h3 { color: #e31e24; margin-bottom: 8px; font-size: 1.1rem; }
         .ihbar-popup p { margin-bottom: 6px; font-size: 0.9rem; color: #333; }
@@ -31,20 +28,13 @@
         .ihbar-popup .tarih { font-size: 0.8rem; color: #888; margin-top: 8px; border-top: 1px solid #eee; padding-top: 6px; }
         .popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 4px; margin-bottom: 8px; border: 1px solid #eee; background: #f0f0f0; }
         
-        /* Medya Butonları */
-        .media-btn { 
-            display: inline-flex; align-items: center; justify-content: center; gap: 4px;
-            margin-top: 4px; padding: 6px 8px; background: #28a745; color: white; 
-            text-decoration: none; border-radius: 4px; font-size: 0.75rem; font-weight: 600; 
-            text-align: center; flex: 1; min-width: 80px; transition: background 0.2s;
-        }
+        .media-btn { display: inline-flex; align-items: center; justify-content: center; gap: 4px; margin-top: 4px; padding: 6px 8px; background: #28a745; color: white; text-decoration: none; border-radius: 4px; font-size: 0.75rem; font-weight: 600; text-align: center; flex: 1; min-width: 80px; transition: background 0.2s; }
         .media-btn:hover { background: #218838; color: white; }
         .media-btn.video { background: #343a40; }
         .media-btn.video:hover { background: #23272b; }
         .media-btn.map { background: #007bff; }
         .media-btn.map:hover { background: #0056b3; }
 
-        /* Cluster Stilleri */
         .marker-cluster-small { background-color: rgba(227, 30, 36, 0.2); }
         .marker-cluster-small div { background-color: rgba(227, 30, 36, 0.6); }
         .marker-cluster-medium { background-color: rgba(227, 30, 36, 0.2); }
@@ -65,56 +55,32 @@
     </div>
 
     <div class="stats">
-        <div class="stat-item">
-            <div class="stat-number" id="totalCount">0</div>
-            <div class="stat-label">Toplam İhbar</div>
-        </div>
-        <div class="stat-item">
-            <div class="stat-number" id="visibleCount">0</div>
-            <div class="stat-label">Görüntülenen</div>
-        </div>
+        <div class="stat-item"><div class="stat-number" id="totalCount">0</div><div class="stat-label">Toplam İhbar</div></div>
+        <div class="stat-item"><div class="stat-number" id="visibleCount">0</div><div class="stat-label">Görüntülenen</div></div>
     </div>
 
-    <div class="filters">
-        <button class="filter-btn active" onclick="filterMap('tumu', this)">📍 Tümü</button>
-        <button class="filter-btn" onclick="filterMap('Çöp-Moloz-Temizlik', this)">🗑️ Çöp-Moloz-Temizlik</button>
-        <button class="filter-btn" onclick="filterMap('Yol ve Kaldırım', this)">🕳️ Yol ve Kaldırım</button>
-        <button class="filter-btn" onclick="filterMap('Yeşil Alan-Park-Bahçe Problemleri', this)">🌳 Yeşil Alan-Park-Bahçe</button>
-        <button class="filter-btn" onclick="filterMap('Su ve Kanalizasyon', this)">💧 Su ve Kanalizasyon</button>
-        <button class="filter-btn" onclick="filterMap('Toplu Taşıma', this)">🚌 Toplu Taşıma</button>
-        <button class="filter-btn" onclick="filterMap('Trafik ve Otopark', this)">🚗 Trafik ve Otopark</button>
-        <button class="filter-btn" onclick="filterMap('Yaya Güvenliği', this)">🚸 Yaya Güvenliği</button>
-        <button class="filter-btn" onclick="filterMap('Gürültü ve Görüntü Kirliliği', this)">🔊 Gürültü ve Görüntü</button>
-        <button class="filter-btn" onclick="filterMap('Diğer', this)">📍 Diğer</button>
+    <div class="filters" id="filterBox">
+        <!-- Butonlar JS ile buraya eklenecek -->
     </div>
 
     <div id="loading" class="loading">⏳ Harita verileri yükleniyor, lütfen bekleyin...</div>
     <div id="map" style="display: none;"></div>
 
-    <!-- Leaflet JS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <!-- Marker Cluster JS -->
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     
     <script>
-        // ⚠️ Çalışan en son API URL'niz
-        const API_URL = "https://script.google.com/macros/s/AKfycbwIp_TfplGwKRwtLwBFABDDgAIlZEpOQil8kcHKcPFA4_yOivFAB_OdoXBO9fk0IRp-/exec";
+        const API_URL = "https://script.google.com/macros/s/AKfycbwG8fc5q6ol2veNpdPhhs__LHN3XpYo75soWnhZUkzY9ncox4US5GuQzbhITkbVLKdP/exec";
         const FALLBACK_IMAGE = "https://via.placeholder.com/400x225/e31e24/ffffff?text=TASKOPRU+GAZETESI";
 
-        let map;
-        let markersCluster;
-        let allData = [];
+        let map, markersCluster, allData = [];
+        let activeFilter = 'all';
+        let activeStatus = 'yayinlandi'; // 'yayinlandi' veya 'cozuldu'
 
         const kategoriEmojileri = {
-            'Çöp-Moloz-Temizlik': '🗑️',
-            'Yol ve Kaldırım': '🕳️',
-            'Yeşil Alan-Park-Bahçe Problemleri': '🌳',
-            'Su ve Kanalizasyon': '💧',
-            'Toplu Taşıma': '🚌',
-            'Trafik ve Otopark': '🚗',
-            'Yaya Güvenliği': '🚸',
-            'Gürültü ve Görüntü Kirliliği': '🔊',
-            'Diğer': '📍'
+            'Çöp-Moloz-Temizlik': '🗑️', 'Yol ve Kaldırım': '🕳️', 'Yeşil Alan-Park-Bahçe Problemleri': '🌳',
+            'Su ve Kanalizasyon': '💧', 'Toplu Taşıma': '🚌', 'Trafik ve Otopark': '🚗',
+            'Yaya Güvenliği': '🚸', 'Gürültü ve Görüntü Kirliliği': '🔊', 'Diğer': '📍'
         };
 
         function getEmoji(tur) {
@@ -129,9 +95,7 @@
         function getDriveThumbUrl(url) {
             if (!url) return null;
             const match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-            if (match) {
-                return `https://lh3.googleusercontent.com/d/${match[1]}=w400`;
-            }
+            if (match) return `https://lh3.googleusercontent.com/d/${match[1]}=w400`;
             return url;
         }
 
@@ -145,24 +109,17 @@
             if (!url) return url;
             const cleanUrl = url.replace(/#video$/i, '');
             const match = cleanUrl.match(/\/d\/([a-zA-Z0-9_-]+)/) || cleanUrl.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-            if (match) {
-                return `https://drive.google.com/file/d/${match[1]}/preview`;
-            }
+            if (match) return `https://drive.google.com/file/d/${match[1]}/preview`;
             return cleanUrl;
         }
 
         function initMap() {
             map = L.map('map').setView([37.0000, 35.3213], 12);
             L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors | Taşköprü Gazetesi',
-                maxZoom: 19
+                attribution: '© OpenStreetMap contributors | Taşköprü Gazetesi', maxZoom: 19
             }).addTo(map);
             
-            markersCluster = L.markerClusterGroup({
-                spiderfyOnMaxZoom: true,
-                showCoverageOnHover: false,
-                zoomToBoundsOnClick: true
-            });
+            markersCluster = L.markerClusterGroup({ spiderfyOnMaxZoom: true, showCoverageOnHover: false, zoomToBoundsOnClick: true });
             map.addLayer(markersCluster);
             
             fetchData();
@@ -173,11 +130,9 @@
                 const response = await fetch(API_URL);
                 const data = await response.json();
                 allData = data;
-                
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('map').style.display = 'block';
                 document.getElementById('totalCount').textContent = data.length;
-                
                 setTimeout(() => { map.invalidateSize(); }, 100);
                 renderMarkers(allData);
             } catch (error) {
@@ -188,39 +143,37 @@
 
         function renderMarkers(data) {
             markersCluster.clearLayers();
+            let visibleCount = 0;
 
             data.forEach(item => {
+                // Filtreleme mantığı
+                if (activeStatus === 'cozuldu' && item.durum !== 'çözüldü') return;
+                if (activeStatus === 'yayinlandi' && item.durum !== 'yayınlandı') return;
+                if (activeFilter !== 'all' && getKategoriKey(item.tur) !== activeFilter) return;
+
+                visibleCount++;
                 const lat = item.koordinat?.lat || 37.0000;
                 const lng = item.koordinat?.lng || 35.3213;
                 const iconEmoji = getEmoji(item.tur);
-
+                const markerColor = item.durum === 'çözüldü' ? 'green' : 'red';
+                
                 const customIcon = L.divIcon({
                     className: 'custom-marker',
-                    html: `<div style="font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); background: white; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3);">${iconEmoji}</div>`,
-                    iconSize: [40, 40],
-                    iconAnchor: [20, 40]
+                    html: `<div style="font-size: 28px; text-shadow: 2px 2px 4px rgba(0,0,0,0.3); background: ${markerColor === 'green' ? '#06d6a0' : 'white'}; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 3px solid ${markerColor === 'green' ? '#06d6a0' : '#e31e24'};">${iconEmoji}</div>`,
+                    iconSize: [40, 40], iconAnchor: [20, 40]
                 });
 
-                let mediaHtml = '';
-                let mediaButtonsHtml = '';
-
+                let mediaHtml = '', mediaButtonsHtml = '';
                 if (item.gorsel) {
                     const mediaLinks = item.gorsel.split(',').map(u => u.trim()).filter(u => u.length > 10);
-
                     if (mediaLinks.length > 0) {
                         const firstLink = mediaLinks[0];
                         const isVid = isVideo(firstLink);
                         const thumbUrl = getDriveThumbUrl(firstLink);
 
-                        if (isVid) {
-                            mediaHtml += `<div style="text-align:center; background:#000; border-radius:4px; margin-bottom:8px; position:relative;">
-                                <div style="font-size:2rem; color:#fff; padding:20px;">🎥 Video</div>
-                            </div>`;
-                        } else if (thumbUrl) {
-                            mediaHtml += `<img src="${thumbUrl}" onerror="this.src='${FALLBACK_IMAGE}'" class="popup-img" alt="İhbar">`;
-                        } else {
-                            mediaHtml += `<img src="${FALLBACK_IMAGE}" class="popup-img" alt="İhbar">`;
-                        }
+                        if (isVid) mediaHtml += `<div style="text-align:center; background:#000; border-radius:4px; margin-bottom:8px;"><div style="font-size:2rem; color:#fff; padding:20px;">🎥 Video</div></div>`;
+                        else if (thumbUrl) mediaHtml += `<img src="${thumbUrl}" onerror="this.src='${FALLBACK_IMAGE}'" class="popup-img" alt="İhbar">`;
+                        else mediaHtml += `<img src="${FALLBACK_IMAGE}" class="popup-img" alt="İhbar">`;
 
                         if (mediaLinks.length > 1 || isVid) {
                             mediaButtonsHtml += `<div style="display:flex; flex-wrap:wrap; gap:4px; margin-top:8px;">`;
@@ -233,24 +186,21 @@
                             });
                             mediaButtonsHtml += `</div>`;
                         } else {
-                            const openLink = getDrivePreviewUrl(firstLink);
-                            mediaButtonsHtml = `<a href="${openLink}" target="_blank" class="media-btn" style="margin-top:8px; width:100%;">📷 Görseli/Videoyu Büyük Gör</a>`;
+                            mediaButtonsHtml = `<a href="${getDrivePreviewUrl(firstLink)}" target="_blank" class="media-btn" style="margin-top:8px; width:100%;">📷 Görseli/Videoyu Büyük Gör</a>`;
                         }
                     }
                 }
 
-                // 🆕 HARİTA LİNKİ İŞLEME (Eksik olan kısım buradan devam ediyor)
-                let mapLinkHtml = '';
-                if (item.haritaLink) {
-                    mapLinkHtml = `<a href="${item.haritaLink}" target="_blank" class="media-btn map" style="margin-top:4px; width:100%;">🗺️ Konumu Haritada Aç</a>`;
-                }
-
+                let mapLinkHtml = item.haritaLink ? `<a href="${item.haritaLink}" target="_blank" class="media-btn map" style="margin-top:4px; width:100%;">🗺️ Konumu Haritada Aç</a>` : '';
                 const tarihFormatli = item.tarih ? new Date(item.tarih).toLocaleString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Belirtilmemiş';
                 const coordsWarning = (!item.koordinat?.lat || !item.koordinat?.lng) ? '<p style="font-size:0.75rem; color:#d97706; margin-top:4px;">⚠️ Konum alınamadı, Adana merkezde gösteriliyor.</p>' : '';
 
                 const popupContent = `
                     <div class="ihbar-popup">
                         <h3>${iconEmoji} ${item.tur || 'Genel İhbar'}</h3>
+                        <p style="background:#f3f4f6; padding:8px; border-radius:6px; font-family:monospace; font-weight:bold; font-size:0.85rem; text-align:center; margin-bottom:10px; border: 1px solid #ddd; user-select: all;">
+                            📋 İhbar No: ${item.ihbarNo}
+                        </p>
                         <p><span class="label">📍 Adres:</span> ${item.adres || 'Belirtilmemiş'}</p>
                         <p><span class="label">📝 Açıklama:</span> ${item.aciklama || 'Açıklama yok'}</p>
                         ${mediaHtml}
@@ -261,32 +211,63 @@
                     </div>
                 `;
 
-                const marker = L.marker([lat, lng], { icon: customIcon })
-                    .bindPopup(popupContent, { maxWidth: 300 });
-                
+                const marker = L.marker([lat, lng], { icon: customIcon }).bindPopup(popupContent, { maxWidth: 300 });
                 markersCluster.addLayer(marker);
             });
 
-            document.getElementById('visibleCount').textContent = data.length;
-            
-            if (data.length > 0) {
-                map.fitBounds(markersCluster.getBounds().pad(0.1));
+            document.getElementById('visibleCount').textContent = visibleCount;
+            if (visibleCount > 0) map.fitBounds(markersCluster.getBounds().pad(0.1));
+            else if (activeStatus === 'cozuldu') {
+                document.getElementById('filterBox').innerHTML += '<p style="width:100%; text-align:center; padding:10px; color:#666;">Henüz çözülen ihbar bulunmuyor.</p>';
             }
         }
 
-        function filterMap(tur, btnElement) {
-            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-            btnElement.classList.add('active');
+        function getKategoriKey(tur) {
+            if (!tur) return 'diger';
+            const map = { 'Çöp-Moloz-Temizlik': 'cop', 'Yol ve Kaldırım': 'yol', 'Yeşil Alan-Park-Bahçe Problemleri': 'yesil', 'Yeşil Alan': 'yesil', 'Park': 'yesil', 'Bahçe': 'yesil', 'Su ve Kanalizasyon': 'su', 'Toplu Taşıma': 'toplu', 'Trafik ve Otopark': 'trafik', 'Yaya Güvenliği': 'yaya', 'Gürültü ve Görüntü Kirliliği': 'gurultu', 'Gürültü': 'gurultu' };
+            for (const k in map) { if (tur.includes(k)) return map[k]; }
+            return 'diger';
+        }
 
-            if (tur === 'tumu') {
+        function initFilters() {
+            const box = document.getElementById('filterBox');
+            const kategoriler = [
+                {id: 'all', metin: 'Tümü', emoji: '📍'}, {id: 'cop', metin: 'Çöp-Moloz-Temizlik', emoji: '🗑️'},
+                {id: 'yol', metin: 'Yol ve Kaldırım', emoji: '🕳️'}, {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: '🌳'},
+                {id: 'su', metin: 'Su ve Kanalizasyon', emoji: '💧'}, {id: 'toplu', metin: 'Toplu Taşıma', emoji: '🚌'},
+                {id: 'trafik', metin: 'Trafik ve Otopark', emoji: '🚗'}, {id: 'yaya', metin: 'Yaya Güvenliği', emoji: '🚸'},
+                {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: '🔊'}, {id: 'diger', metin: 'Diğer', emoji: '📍'}
+            ];
+
+            kategoriler.forEach((k, i) => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn kategori-btn' + (i === 0 ? ' active' : '');
+                btn.textContent = k.emoji + ' ' + k.metin;
+                btn.onclick = function() {
+                    document.querySelectorAll('.kategori-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    document.querySelectorAll('.cozuldu-btn').forEach(b => b.classList.remove('active'));
+                    activeStatus = 'yayinlandi';
+                    activeFilter = k.id;
+                    renderMarkers(allData);
+                };
+                box.appendChild(btn);
+            });
+
+            const cozulduBtn = document.createElement('button');
+            cozulduBtn.className = 'filter-btn cozuldu-btn';
+            cozulduBtn.textContent = '✅ Çözülen Sorunlar';
+            cozulduBtn.onclick = function() {
+                document.querySelectorAll('.kategori-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                activeStatus = 'cozuldu';
+                activeFilter = 'all';
                 renderMarkers(allData);
-            } else {
-                const filteredData = allData.filter(item => item.tur === tur);
-                renderMarkers(filteredData);
-            }
+            };
+            box.appendChild(cozulduBtn);
         }
 
-        window.onload = initMap;
+        window.onload = function() { initFilters(); initMap(); };
     </script>
 </body>
 </html>

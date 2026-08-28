@@ -46,9 +46,25 @@ body { background: #f4f6f9; padding: 10px; }
 .card-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid #eee; font-size: 0.75rem; color: #888; flex-wrap: wrap; gap: 5px; margin-top: auto; }
 .card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
 .card-footer a:hover { text-decoration: underline; }
-.ihbar-no { background: #f3f4f6; color: #374151; padding: 4px 10px; border-radius: 4px; font-size: 0.75rem; font-family: monospace; font-weight: bold; cursor: pointer; user-select: all; transition: all 0.3s; border: 1px solid #e5e7eb; }
+
+/* 🆕 KOPYALANABİLİR İHBAR NO STİLİ */
+.ihbar-no { 
+  background: #f3f4f6; 
+  color: #374151; 
+  padding: 4px 10px; 
+  border-radius: 4px; 
+  font-size: 0.75rem; 
+  font-family: monospace; 
+  font-weight: bold; 
+  cursor: pointer; 
+  user-select: all; 
+  transition: all 0.3s; 
+  border: 1px solid #e5e7eb;
+  display: inline-block;
+}
 .ihbar-no:hover { background: #e5e7eb; }
-.ihbar-no.copied { background: #06d6a0; color: #fff; border-color: #06d6a0; }
+.ihbar-no.copied { background: #06d6a0 !important; color: #fff !important; border-color: #06d6a0 !important; }
+
 .loading { text-align: center; padding: 50px; color: #666; font-size: 1rem; }
 .error { text-align: center; padding: 30px; color: #e31e24; background: #fff; border-radius: 12px; margin: 15px; }
 .no-results { grid-column: 1/-1; text-align: center; padding: 40px; color: #888; }
@@ -74,7 +90,7 @@ body { background: #f4f6f9; padding: 10px; }
     <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
   </div>
   <div class="controls">
-    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres, açıklama veya ihbar no ara...">
+    <input type="text" class="search-box" id="searchBox" placeholder=" Adres, açıklama veya ihbar no ara...">
   </div>
   <div class="controls" id="filterBox"></div>
   <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
@@ -160,10 +176,11 @@ function tarihFormatla(tarihStr) {
   catch(e) { return String(tarihStr).substring(0, 10); }
 }
 
+// 🆕 KART OLUŞTURMA - İHBAR NO KOPYALAMA DÜZELTİLDİ
 function kartOlustur(item) {
   var emoji = getEmoji(item.tur);
   var isAnonim = (item.adSoyad === 'Anonim' || item.adSoyad === 'Gizli' || !item.adSoyad || item.adSoyad === 'İsminin açıklanmasını istemeyen');
-  var adHtml = isAnonim ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' : ' ' + escapeHtml(item.adSoyad);
+  var adHtml = isAnonim ? '<span class="anonim"> İsminin açıklanmasını istemeyen</span>' : ' ' + escapeHtml(item.adSoyad);
   
   var statusBadge = item.durum === 'çözüldü' 
     ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' 
@@ -185,7 +202,7 @@ function kartOlustur(item) {
     if (isVideo) thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
     else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
   } else {
-    thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
+    thumbHtml = '<div class="card-thumb"><div class="no-image"></div></div>';
   }
 
   var mediaButtonsHtml = '';
@@ -203,28 +220,63 @@ function kartOlustur(item) {
   
   var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  // 🆕 İHBAR NO DÜZELTMESİ: Başına "📋 İhbar No: " eklendi, kopyalama sadece numarayı alıyor.
-  var ihbarNoHtml = '<span class="ihbar-no" title="Kopyalamak için tıklayın" onclick="copyIhbarNo(this, \'' + escapeAttr(item.ihbarNo) + '\')">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
+  // 🆕 İHBAR NO - onclick ile data attribute üzerinden kopyalama
+  var ihbarNoHtml = '<span class="ihbar-no" data-ihbar="' + escapeAttr(item.ihbarNo) + '" onclick="copyIhbarNo(this)" title="Kopyalamak için tıklayın">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
 
   return '<div class="' + cardClass + '">' + thumbHtml + '<div class="card-body">' +
     statusBadge + '<div class="card-ad">' + adHtml + '</div>' +
-    '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
+    '<div class="card-adres"> ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
     '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
-    mediaButtonsHtml + '<div class="card-footer"><span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
+    mediaButtonsHtml + '<div class="card-footer"><span> ' + tarihFormatla(item.tarih) + '</span>' +
     ihbarNoHtml + haritaLinkHtml + '</div></div></div>';
 }
 
-function copyIhbarNo(element, text) {
-  navigator.clipboard.writeText(text).then(function() {
-    element.classList.add('copied');
-    element.textContent = '✅ Kopyalandı!';
-    setTimeout(function() {
-      element.classList.remove('copied');
-      element.textContent = '📋 İhbar No: ' + text;
-    }, 1500);
-  });
+// 🆕 KOPYALAMA FONKSİYONU - GÜVENİLİR VE GÖRSEL GERİ BİLDİRİMLİ
+function copyIhbarNo(element) {
+  var text = element.getAttribute('data-ihbar');
+  if (!text) return;
+  
+  // Clipboard API kullan
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() {
+      showCopiedFeedback(element, text);
+    }).catch(function() {
+      fallbackCopy(element, text);
+    });
+  } else {
+    fallbackCopy(element, text);
+  }
+}
+
+// Görsel geri bildirim
+function showCopiedFeedback(element, originalText) {
+  element.classList.add('copied');
+  element.textContent = '✅ Kopyalandı!';
+  setTimeout(function() {
+    element.classList.remove('copied');
+    element.textContent = '📋 İhbar No: ' + originalText;
+  }, 1500);
+}
+
+// Eski tarayıcılar için fallback
+function fallbackCopy(element, text) {
+  var textArea = document.createElement('textarea');
+  textArea.value = text;
+  textArea.style.position = 'fixed';
+  textArea.style.left = '-9999px';
+  textArea.style.top = '-9999px';
+  document.body.appendChild(textArea);
+  textArea.focus();
+  textArea.select();
+  try {
+    document.execCommand('copy');
+    showCopiedFeedback(element, text);
+  } catch (err) {
+    console.error('Kopyalama başarısız:', err);
+  }
+  document.body.removeChild(textArea);
 }
 
 function escapeHtml(str) { if (!str) return ''; return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }

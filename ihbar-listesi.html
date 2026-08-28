@@ -1,6 +1,4 @@
- 
-
- <!DOCTYPE html>
+  <!DOCTYPE html>
 <html lang="tr">
 <head>
 <meta charset="UTF-8">
@@ -116,4 +114,305 @@ var kategoriler = [
   {id: 'yol', metin: 'Yol ve Kaldırım', emoji: String.fromCodePoint(0x1F573)},
   {id: 'yesil', metin: 'Yeşil Alan-Park-Bahçe', emoji: String.fromCodePoint(0x1F333)},
   {id: 'su', metin: 'Su ve Kanalizasyon', emoji: String.fromCodePoint(0x1F4A7)},
-  {id: '
+  {id: 'toplu', metin: 'Toplu Taşıma', emoji: String.fromCodePoint(0x1F68C)},
+  {id: 'trafik', metin: 'Trafik ve Otopark', emoji: String.fromCodePoint(0x1F697)},
+  {id: 'yaya', metin: 'Yaya Güvenliği', emoji: String.fromCodePoint(0x1F6B8)},
+  {id: 'gurultu', metin: 'Gürültü ve Görüntü', emoji: String.fromCodePoint(0x1F50A)},
+  {id: 'diger', metin: 'Diğer', emoji: String.fromCodePoint(0x1F4CD)}
+];
+
+var kategoriMap = {
+  'Çöp-Moloz-Temizlik': 'cop',
+  'Yol ve Kaldırım': 'yol',
+  'Yeşil Alan-Park-Bahçe Problemleri': 'yesil',
+  'Yeşil Alan': 'yesil',
+  'Park': 'yesil',
+  'Bahçe': 'yesil',
+  'Su ve Kanalizasyon': 'su',
+  'Toplu Taşıma': 'toplu',
+  'Trafik ve Otopark': 'trafik',
+  'Yaya Güvenliği': 'yaya',
+  'Gürültü ve Görüntü Kirliliği': 'gurultu',
+  'Gürültü': 'gurultu'
+};
+
+function getKategoriKey(tur) {
+  if (!tur) return 'diger';
+  for (var k in kategoriMap) {
+    if (tur.indexOf(k) !== -1) return kategoriMap[k];
+  }
+  return 'diger';
+}
+
+function getEmoji(tur) {
+  var key = getKategoriKey(tur);
+  for (var i = 0; i < kategoriler.length; i++) {
+    if (kategoriler[i].id === key) return kategoriler[i].emoji;
+  }
+  return String.fromCodePoint(0x1F4CD);
+}
+
+function getDrivePreviewUrl(url) {
+  if (!url) return null;
+  var match = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  if (match) {
+    return 'https://drive.google.com/file/d/' + match[1] + '/preview';
+  }
+  return url;
+}
+
+function butonlariOlustur() {
+  var box = document.getElementById('filterBox');
+  box.innerHTML = '';
+  
+  //  Durum Filtreleri (Yayınlandı / Çözüldü)
+  var statusContainer = document.createElement('div');
+  statusContainer.style.cssText = 'display:flex; gap:8px; margin-right:12px; padding-right:12px; border-right:2px solid #eee;';
+  
+  var yayinlandiBtn = document.createElement('button');
+  yayinlandiBtn.className = 'filter-btn active';
+  yayinlandiBtn.textContent = '📢 Yayınlananlar';
+  yayinlandiBtn.onclick = function() {
+    activeStatus = 'yayinlandi';
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    uygulaFiltre();
+  };
+  statusContainer.appendChild(yayinlandiBtn);
+  
+  var cozulduBtn = document.createElement('button');
+  cozulduBtn.className = 'filter-btn cozuldu-btn status-btn';
+  cozulduBtn.textContent = '✅ Çözüldü';
+  cozulduBtn.onclick = function() {
+    activeStatus = 'cozuldu';
+    document.querySelectorAll('.status-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    uygulaFiltre();
+  };
+  statusContainer.appendChild(cozulduBtn);
+  
+  box.appendChild(statusContainer);
+  
+  // Kategori Filtreleri
+  for (var i = 0; i < kategoriler.length; i++) {
+    var k = kategoriler[i];
+    var btn = document.createElement('button');
+    btn.className = 'filter-btn' + (i === 0 ? ' active' : '');
+    btn.setAttribute('data-id', k.id);
+    btn.textContent = k.emoji + ' ' + k.metin;
+    btn.onclick = function() {
+      document.querySelectorAll('.filter-btn:not(.status-btn)').forEach(function(b) { b.classList.remove('active'); });
+      this.classList.add('active');
+      activeFilter = this.getAttribute('data-id');
+      uygulaFiltre();
+    };
+    box.appendChild(btn);
+  }
+}
+
+function tarihFormatla(tarihStr) {
+  if (!tarihStr) return 'Belirtilmemiş';
+  try {
+    var d = new Date(tarihStr);
+    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+  } catch(e) {
+    return String(tarihStr).substring(0, 10);
+  }
+}
+
+function kartOlustur(item) {
+  var emoji = getEmoji(item.tur);
+  var isAnonim = (item.adSoyad === 'Anonim' || item.adSoyad === 'Gizli' || !item.adSoyad || item.adSoyad === 'İsminin açıklanmasını istemeyen');
+  var adHtml = isAnonim 
+    ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' 
+    : ' ' + escapeHtml(item.adSoyad);
+  
+  // 🆕 Çözüldü Badge
+  var statusBadge = item.durum === 'çözüldü' 
+    ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' 
+    : '<span class="card-tur">' + emoji + ' ' + escapeHtml(item.tur || 'Genel İhbar') + '</span>';
+
+  var mediaLinks = [];
+  if (item.gorsel) {
+    mediaLinks = item.gorsel.split(/[,;\n]+/).map(function(u) { return u.trim(); }).filter(function(u) { return u.length > 10 && u.includes('http'); });
+  }
+  
+  var thumbHtml = '';
+  if (mediaLinks.length > 0) {
+    var firstLink = mediaLinks[0];
+    var isVideo = firstLink.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(firstLink);
+    var thumbSrc = firstLink;
+    var driveMatch = firstLink.match(/\/d\/([a-zA-Z0-9_-]+)/) || firstLink.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+    if (driveMatch && !isVideo) {
+      thumbSrc = 'https://lh3.googleusercontent.com/d/' + driveMatch[1] + '=w600';
+    }
+
+    if (isVideo) {
+      thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
+    } else {
+      thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar görseli" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
+    }
+  } else {
+    thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
+  }
+
+  var mediaButtonsHtml = '';
+  if (mediaLinks.length > 0) {
+    mediaButtonsHtml += '<div class="media-buttons">';
+    mediaLinks.forEach(function(link, index) {
+      var isVid = link.toLowerCase().indexOf('video') !== -1 || /\.(mp4|mov|avi|webm|mkv)$/i.test(link);
+      var btnClass = isVid ? 'media-btn video' : 'media-btn';
+      var icon = isVid ? '🎥' : '📷';
+      var label = isVid ? 'Video' : ('Görsel ' + (index + 1));
+      var safeLink = escapeAttr(link);
+      mediaButtonsHtml += '<button class="' + btnClass + '" onclick="openLightbox(\'' + safeLink + '\', ' + isVid + ')">' + icon + ' ' + label + '</button>';
+    });
+    mediaButtonsHtml += '</div>';
+  }
+  
+  var haritaLinkHtml = item.haritaLink 
+    ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">️ Harita</a>' 
+    : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
+  
+  // 🆕 İhbar No (Kopyalayabilir)
+  var ihbarNoHtml = '<span class="ihbar-no" title="Kopyalamak için tıklayın" onclick="copyIhbarNo(this, \'' + escapeAttr(item.ihbarNo) + '\')">#' + escapeHtml(item.ihbarNo) + '</span>';
+  
+  var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
+
+  return '<div class="' + cardClass + '">' +
+    thumbHtml +
+    '<div class="card-body">' +
+      statusBadge +
+      '<div class="card-ad">' + adHtml + '</div>' +
+      '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
+      '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
+      mediaButtonsHtml +
+      '<div class="card-footer">' +
+        '<span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
+        ihbarNoHtml +
+        haritaLinkHtml +
+      '</div>' +
+    '</div>' +
+  '</div>';
+}
+
+function copyIhbarNo(element, text) {
+  navigator.clipboard.writeText(text).then(function() {
+    element.classList.add('copied');
+    element.textContent = '#Kopyalandı!';
+    setTimeout(function() {
+      element.classList.remove('copied');
+      element.textContent = '#' + text;
+    }, 1500);
+  }).catch(function() {
+    // Fallback
+    var textArea = document.createElement('textarea');
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textArea);
+    element.classList.add('copied');
+    setTimeout(function() { element.classList.remove('copied'); }, 1500);
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function escapeAttr(str) {
+  if (!str) return '';
+  return String(str).replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function uygulaFiltre() {
+  filteredData = allData.filter(function(item) {
+    //  Durum filtresi
+    if (activeStatus === 'cozuldu' && item.durum !== 'çözüldü') return false;
+    if (activeStatus === 'yayinlandi' && item.durum !== 'yayınlandı') return false;
+    
+    var kategoriEslesme = (activeFilter === 'all') || (getKategoriKey(item.tur) === activeFilter);
+    
+    var aramaEslesme = true;
+    if (searchQuery) {
+      var q = searchQuery.toLowerCase();
+      aramaEslesme = (item.adres && item.adres.toLowerCase().indexOf(q) !== -1) ||
+                     (item.aciklama && item.aciklama.toLowerCase().indexOf(q) !== -1) ||
+                     (item.tur && item.tur.toLowerCase().indexOf(q) !== -1) ||
+                     (item.ihbarNo && item.ihbarNo.toLowerCase().indexOf(q) !== -1);
+    }
+    return kategoriEslesme && aramaEslesme;
+  });
+  
+  var grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  filteredData.forEach(function(item) {
+    grid.innerHTML += kartOlustur(item);
+  });
+  
+  document.getElementById('visibleCount').textContent = filteredData.length;
+  
+  if (filteredData.length === 0) {
+    grid.innerHTML = '<div class="no-results">🔍 Bu kriterlere uygun ihbar bulunamadı.</div>';
+  }
+}
+
+function openLightbox(url, isVideo) {
+  var lb = document.getElementById('lightbox');
+  var content = document.getElementById('lightboxContent');
+  
+  var driveMatch = url.match(/\/d\/([a-zA-Z0-9_-]+)/) || url.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  
+  if (driveMatch) {
+    var fileId = driveMatch[1];
+    content.innerHTML = '<iframe src="https://drive.google.com/file/d/' + fileId + '/preview" style="width:100%; height:80vh; border:none; border-radius:8px;" allow="autoplay; encrypted-media" allowfullscreen></iframe>';
+  } else if (isVideo) {
+    content.innerHTML = '<video src="' + escapeAttr(url) + '" controls autoplay style="max-width:100%; max-height:90vh; border-radius:8px;"></video>';
+  } else {
+    content.innerHTML = '<img src="' + escapeAttr(url) + '" alt="Büyük görsel" style="max-width:100%; max-height:90vh; border-radius:8px;" onerror="this.parentElement.innerHTML=\'<p style=color:#fff;font-size:1.2rem;>Görsel yüklenemedi</p>\'">';
+  }
+  lb.classList.add('active');
+}
+
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('active');
+  document.getElementById('lightboxContent').innerHTML = '';
+}
+
+document.getElementById('searchBox').addEventListener('input', function(e) {
+  searchQuery = e.target.value.trim();
+  uygulaFiltre();
+});
+
+document.getElementById('lightbox').addEventListener('click', function(e) {
+  if (e.target === this) closeLightbox();
+});
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+function init() {
+  butonlariOlustur();
+  fetch(API_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      allData = data;
+      document.getElementById('totalCount').textContent = data.length;
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('grid').style.display = 'grid';
+      uygulaFiltre();
+    })
+    .catch(function(e) {
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('error').style.display = 'block';
+      document.getElementById('error').textContent = '❌ İhbarlar yüklenirken hata oluştu. Lütfen sayfayı yenileyin.';
+    });
+}
+
+window.addEventListener('load', function() { setTimeout(init, 100); });
+</script>
+</body>
+</html>

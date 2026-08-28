@@ -47,7 +47,7 @@ body { background: #f4f6f9; padding: 10px; }
 .card-footer a { color: #e31e24; text-decoration: none; font-weight: 600; }
 .card-footer a:hover { text-decoration: underline; }
 
-/* 🆕 KOPYALANABİLİR İHBAR NO STİLİ */
+/* 🆕 KOPYALANABİLİR İHBAR NO STİLİ - Scroll sorunu için güncellendi */
 .ihbar-no { 
   background: #f3f4f6; 
   color: #374151; 
@@ -57,10 +57,10 @@ body { background: #f4f6f9; padding: 10px; }
   font-family: monospace; 
   font-weight: bold; 
   cursor: pointer; 
-  user-select: all; 
   transition: all 0.3s; 
   border: 1px solid #e5e7eb;
   display: inline-block;
+  user-select: none; /* user-select: all kaldırıldı, scroll sorununu çözer */
 }
 .ihbar-no:hover { background: #e5e7eb; }
 .ihbar-no.copied { background: #06d6a0 !important; color: #fff !important; border-color: #06d6a0 !important; }
@@ -90,7 +90,7 @@ body { background: #f4f6f9; padding: 10px; }
     <div class="stat"><div class="stat-num" id="visibleCount">0</div><div class="stat-label">Gösterilen</div></div>
   </div>
   <div class="controls">
-    <input type="text" class="search-box" id="searchBox" placeholder=" Adres, açıklama veya ihbar no ara...">
+    <input type="text" class="search-box" id="searchBox" placeholder="🔍 Adres, açıklama veya ihbar no ara...">
   </div>
   <div class="controls" id="filterBox"></div>
   <div id="loading" class="loading">⏳ İhbarlar yükleniyor...</div>
@@ -176,11 +176,10 @@ function tarihFormatla(tarihStr) {
   catch(e) { return String(tarihStr).substring(0, 10); }
 }
 
-// 🆕 KART OLUŞTURMA - İHBAR NO KOPYALAMA DÜZELTİLDİ
 function kartOlustur(item) {
   var emoji = getEmoji(item.tur);
   var isAnonim = (item.adSoyad === 'Anonim' || item.adSoyad === 'Gizli' || !item.adSoyad || item.adSoyad === 'İsminin açıklanmasını istemeyen');
-  var adHtml = isAnonim ? '<span class="anonim"> İsminin açıklanmasını istemeyen</span>' : ' ' + escapeHtml(item.adSoyad);
+  var adHtml = isAnonim ? '<span class="anonim">🔒 İsminin açıklanmasını istemeyen</span>' : ' ' + escapeHtml(item.adSoyad);
   
   var statusBadge = item.durum === 'çözüldü' 
     ? '<span class="card-tur resolved-badge">✅ ÇÖZÜLDÜ</span>' 
@@ -200,9 +199,9 @@ function kartOlustur(item) {
     if (driveMatch && !isVideo) thumbSrc = 'https://lh3.googleusercontent.com/d/' + driveMatch[1] + '=w600';
 
     if (isVideo) thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', true)"><div class="play-icon">▶</div></div>';
-    else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image>📷</div>\'"></div>';
+    else thumbHtml = '<div class="card-thumb" onclick="openLightbox(\'' + escapeAttr(firstLink) + '\', false)"><img src="' + escapeAttr(thumbSrc) + '" alt="İhbar" onerror="this.style.display=\'none\';this.parentElement.innerHTML=\'<div class=no-image></div>\'"></div>';
   } else {
-    thumbHtml = '<div class="card-thumb"><div class="no-image"></div></div>';
+    thumbHtml = '<div class="card-thumb"><div class="no-image">📷</div></div>';
   }
 
   var mediaButtonsHtml = '';
@@ -218,23 +217,29 @@ function kartOlustur(item) {
     mediaButtonsHtml += '</div>';
   }
   
-  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span>📍 ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
+  var haritaLinkHtml = item.haritaLink ? '<a href="' + escapeAttr(item.haritaLink) + '" target="_blank">🗺️ Harita</a>' : '<span> ' + escapeHtml(item.adres || 'Adres yok') + '</span>';
   
-  // 🆕 İHBAR NO - onclick ile data attribute üzerinden kopyalama
-  var ihbarNoHtml = '<span class="ihbar-no" data-ihbar="' + escapeAttr(item.ihbarNo) + '" onclick="copyIhbarNo(this)" title="Kopyalamak için tıklayın">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
+  //  DÜZELTME: onclick'e event parametresi eklendi
+  var ihbarNoHtml = '<span class="ihbar-no" data-ihbar="' + escapeAttr(item.ihbarNo) + '" onclick="copyIhbarNo(event, this)" title="Kopyalamak için tıklayın">📋 İhbar No: ' + escapeHtml(item.ihbarNo) + '</span>';
   
   var cardClass = item.durum === 'çözüldü' ? 'card resolved' : 'card';
 
   return '<div class="' + cardClass + '">' + thumbHtml + '<div class="card-body">' +
     statusBadge + '<div class="card-ad">' + adHtml + '</div>' +
-    '<div class="card-adres"> ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
+    '<div class="card-adres">📍 ' + escapeHtml(item.adres || 'Adres belirtilmemiş') + '</div>' +
     '<div class="card-aciklama">' + escapeHtml(item.aciklama || 'Açıklama yok') + '</div>' +
-    mediaButtonsHtml + '<div class="card-footer"><span> ' + tarihFormatla(item.tarih) + '</span>' +
+    mediaButtonsHtml + '<div class="card-footer"><span>🕒 ' + tarihFormatla(item.tarih) + '</span>' +
     ihbarNoHtml + haritaLinkHtml + '</div></div></div>';
 }
 
-// 🆕 KOPYALAMA FONKSİYONU - GÜVENİLİR VE GÖRSEL GERİ BİLDİRİMLİ
-function copyIhbarNo(element) {
+//  DÜZELTME: Scroll sorununu çözen kopyalama fonksiyonu
+function copyIhbarNo(event, element) {
+  // 🎯 KRİTİK: Scroll'u ve varsayılan davranışı engelle
+  if (event) {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  
   var text = element.getAttribute('data-ihbar');
   if (!text) return;
   
@@ -248,6 +253,9 @@ function copyIhbarNo(element) {
   } else {
     fallbackCopy(element, text);
   }
+  
+  //  Ekstra güvenlik: return false
+  return false;
 }
 
 // Görsel geri bildirim
@@ -335,7 +343,7 @@ function init() {
   }).catch(function(e) {
     document.getElementById('loading').style.display = 'none';
     document.getElementById('error').style.display = 'block';
-    document.getElementById('error').textContent = '❌ Veri yüklenirken hata: ' + e.message;
+    document.getElementById('error').textContent = ' Veri yüklenirken hata: ' + e.message;
   });
 }
 window.addEventListener('load', function() { setTimeout(init, 100); });
